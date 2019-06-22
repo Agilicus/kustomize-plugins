@@ -1,6 +1,7 @@
 #!/usr/bin/env /usr/bin/python3
 
 import sys
+from itertools import tee
 import yaml
 
 with open(sys.argv[1], 'r') as stream:
@@ -18,8 +19,8 @@ metadata:
   name: %s""" % ns)
     if len(labels):
         print("  labels:")
-        for k, v in labels:
-            print("    %s: %s" % ( k, v))
+        for k in labels.keys():
+            print("    %s: %s" % ( k, labels[k]))
 
 for ns in data['namespaces']:
     gen(ns, data['labels'])
