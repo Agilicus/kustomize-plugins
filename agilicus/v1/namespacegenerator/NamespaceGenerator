@@ -1,0 +1,26 @@
+#!/usr/bin/env /usr/bin/python3
+
+import sys
+import yaml
+
+with open(sys.argv[1], 'r') as stream:
+    try:
+        data = yaml.safe_load(stream)
+    except yaml.YAMLError as exc:
+        print("Error parsing namespace generator input (%s)", file=sys.stderr)
+
+#{'apiVersion': 'agilicus/v1', 'kind': 'NamespaceGenerator', 'metadata': {'name': 'not-used'}, 'labels': {'a1': 'val1', 'a2': 'val2 b'}, 'namespaces': ['ns1', 'ns2']}
+def gen(ns, labels):
+    print("""---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: %s""" % ns)
+    if len(labels):
+        print("  labels:")
+        for k, v in labels:
+            print("    %s: %s" % ( k, v))
+
+for ns in data['namespaces']:
+    gen(ns, data['labels'])
+
