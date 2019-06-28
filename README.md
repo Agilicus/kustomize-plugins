@@ -1,6 +1,8 @@
 Various plugins for kustomize. 
 
-Install: cp -pr agilicus ~/.config/kustomize/plugin/
+Install: `cp -pr agilicus ~/.config/kustomize/plugin/`
+
+(you can also install _live_, e.g. `ln -s $PWD/agilicius ~/.config/kustomize/plugin/`)
 
 ## NamespaceGenerator
 
