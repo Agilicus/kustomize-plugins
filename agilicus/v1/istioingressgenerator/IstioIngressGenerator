@@ -1,0 +1,90 @@
+#!/usr/bin/env /usr/bin/python3
+
+import sys
+import textwrap
+from itertools import tee
+import yaml
+
+with open(sys.argv[1], 'r') as stream:
+    try:
+        data = yaml.safe_load(stream)
+    except yaml.YAMLError as exc:
+        print("Error parsing IstioIngressGenerator generator input (%s)", file=sys.stderr)
+
+if not 'namespace' in data['metadata']:
+    data['metadata']['namespace'] = 'default'
+
+def gen(data, name, namespace, hostname, match_routes, issuer):
+
+    cert = f"""
+---
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  name: {data['name']}-{data['metadata']['namespace']}-certificate
+  namespace: istio-system
+spec:
+  secretName: {data['name']}-{data['metadata']['namespace']}-certificate
+  issuerRef:
+    name: {data['issuer']}
+  commonName: {data['hostname']}
+  dnsNames:
+    - {data['hostname']}
+  acme:
+    config:
+      - http01:
+          ingressClass: istio
+        domains:
+          - {data['hostname']}"""
+
+    vs = f"""
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: {data['name']}-{data['metadata']['namespace']}-vs
+spec:
+  hosts:
+    - {data['hostname']}
+  gateways:
+    - istio-system/{data['name']}-{data['metadata']['namespace']}-gw
+"""
+
+    gw = f"""
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: {data['name']}-{data['metadata']['namespace']}-gw
+  namespace: istio-system
+  labels:
+    app: ingressgateway
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 443
+        protocol: HTTPS
+        name: https-default
+      tls:
+        mode: SIMPLE
+        serverCertificate: "sds"
+        privateKey: "sds"
+        credentialName: "{data['name']}-{data['metadata']['namespace']}-certificate"
+      hosts:
+        - {data['hostname']}
+"""
+
+    print(cert)
+    print(vs)
+    print(textwrap.indent(yaml.dump(data['match_routes'], indent=2), 2 * ' '))
+    print(gw)
+    
+
+gen(data,
+    data['name'],
+    data['metadata']['namespace'],
+    data['hostname'],
+    data['match_routes'],
+    data['issuer'])

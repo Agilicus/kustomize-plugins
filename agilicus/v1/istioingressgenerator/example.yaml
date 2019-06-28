@@ -1,0 +1,19 @@
+---
+apiVersion: agilicus/v1
+kind: IstioIngressGenerator
+metadata:
+  name: not-used-ingress
+name: alertmanager
+hostname: alertmanager.__ROOT_DOMAIN__
+issuer: letsencrypt-istio
+match_routes:
+  http:
+    - match:
+        - uri:
+            prefix: /
+      route:
+        - destination:
+            host: alertmanager-main
+            port:
+              number: 9093
+
