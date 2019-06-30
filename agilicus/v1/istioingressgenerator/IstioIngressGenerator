@@ -16,6 +16,8 @@ if not 'namespace' in data['metadata']:
 
 def gen(data, name, namespace, hostname, match_routes, issuer):
 
+    hash_name = str(hash(f"{data['name']}-{data['metadata']['namespace']}"))[:3]
+    secret_name = f"h{hash_name}-{data['name']}-{data['metadata']['namespace']}-certificate"
     cert = f"""
 ---
 apiVersion: certmanager.k8s.io/v1alpha1
@@ -24,7 +26,7 @@ metadata:
   name: {data['name']}-{data['metadata']['namespace']}-certificate
   namespace: istio-system
 spec:
-  secretName: {data['name']}-{data['metadata']['namespace']}-certificate
+  secretName: {secret_name}
   issuerRef:
     name: {data['issuer']}
   commonName: {data['hostname']}
@@ -72,7 +74,7 @@ spec:
         mode: SIMPLE
         serverCertificate: "sds"
         privateKey: "sds"
-        credentialName: "{data['name']}-{data['metadata']['namespace']}-certificate"
+        credentialName: "{secret_name}"
       hosts:
         - {data['hostname']}
 """
