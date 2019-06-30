@@ -1,0 +1,8 @@
+---
+apiVersion: agilicus/v1
+kind: CertificateTransformer
+metadata:
+  name: not-used-cert
+name: to-staging
+oldIssuer: letsencrypt-istio
+newIssuer: letsencrypt-istio-staging
