@@ -4,6 +4,11 @@ import sys
 import textwrap
 from itertools import tee
 import yaml
+import hashlib
+
+def chash(w):
+    h = hashlib.sha256(w.encode('utf-8'))
+    return h.hexdigest()[:4]
 
 with open(sys.argv[1], 'r') as stream:
     try:
@@ -15,8 +20,8 @@ if not 'namespace' in data['metadata']:
     data['metadata']['namespace'] = 'default'
 
 def gen(data, name, namespace, hostname, match_routes, issuer):
-
-    hash_name = str(hash(f"{data['name']}-{data['metadata']['namespace']}"))[:3]
+    uhash_name = f"{data['name']}-{data['metadata']['namespace']}"
+    hash_name = chash(uhash_name)
     secret_name = f"h{hash_name}-{data['name']}-{data['metadata']['namespace']}-certificate"
     cert = f"""
 ---
