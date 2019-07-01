@@ -1,0 +1,6 @@
+---
+apiVersion: agilicus/v1
+kind: NamespaceTransformer
+metadata:
+  name: not-used-ns
+namespace: foobar

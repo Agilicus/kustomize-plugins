@@ -1,0 +1,17 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: with-ns
+  namespace: keep-me
+spec:
+  ports: []
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: without-ns
+spec:
+  ports: []
+

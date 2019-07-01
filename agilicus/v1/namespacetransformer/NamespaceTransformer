@@ -1,0 +1,19 @@
+#!/usr/bin/env /usr/bin/python3
+
+import sys
+import yaml
+
+with open(sys.argv[1], 'r') as stream:
+    try:
+        data = yaml.safe_load(stream)
+    except yaml.YAMLError as exc:
+        print("Error parsing NamespaceTransformer input", file=sys.stderr)
+
+try:
+    for yaml_input in yaml.safe_load_all(sys.stdin):
+        if 'namespace' not in yaml_input['metadata']:
+            yaml_input['metadata']['namespace'] = data['namespace']
+        print("---")
+        print(yaml.dump(yaml_input, default_flow_style=False))
+except yaml.YAMLError as exc:
+    print("Error parsing YAML input\n\n%s\n\n" % input, file=sys.stderr)
