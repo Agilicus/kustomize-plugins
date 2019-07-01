@@ -3,16 +3,54 @@
 import sys
 import yaml
 
-with open(sys.argv[1], 'r') as stream:
+with open(sys.argv[1], "r") as stream:
     try:
         data = yaml.safe_load(stream)
     except yaml.YAMLError as exc:
         print("Error parsing NamespaceTransformer input", file=sys.stderr)
 
+# See kubectl api-resources --namespaced=false
+blacklist = [
+    "ComponentStatus",
+    "Namespace",
+    "Node",
+    "PersistentVolume",
+    "MutatingWebhookConfiguration",
+    "ValidatingWebhookConfiguration",
+    "CustomResourceDefinition",
+    "APIService",
+    "MeshPolicy",
+    "TokenReview",
+    "SelfSubjectAccessReview",
+    "SelfSubjectRulesReview",
+    "SubjectAccessReview",
+    "CertificateSigningRequest",
+    "ClusterIssuer",
+    "BGPConfiguration",
+    "ClusterInformation",
+    "FelixConfiguration",
+    "GlobalBGPConfig",
+    "GlobalFelixConfig",
+    "GlobalNetworkPolicy",
+    "GlobalNetworkSet",
+    "HostEndpoint",
+    "IPPool",
+    "PodSecurityPolicy",
+    "NodeMetrics",
+    "PodSecurityPolicy",
+    "ClusterRoleBinding",
+    "ClusterRole",
+    "ClusterRbacConfig",
+    "PriorityClass",
+    "StorageClass",
+    "VolumeAttachment",
+]
+
 try:
     for yaml_input in yaml.safe_load_all(sys.stdin):
-        if 'namespace' not in yaml_input['metadata']:
-            yaml_input['metadata']['namespace'] = data['namespace']
+        if yaml_input['kind'] not in blacklist:
+            if "namespace" not in yaml_input["metadata"]:
+                yaml_input["metadata"]["namespace"] = data["namespace"]
         print("---")
         print(yaml.dump(yaml_input, default_flow_style=False))
 except yaml.YAMLError as exc:
