@@ -7,6 +7,8 @@ Install: `cp -pr agilicus ~/.config/kustomize/plugin/`
 
 (you can also install _live_, e.g. `ln -s $PWD/agilicus ~/.config/kustomize/plugin/`)
 
+More info on the [blog](https://www.agilicus.com/kustomize-plugin-examples/) post.
+
 ## NamespaceGenerator
 
 This takes a config file like:
