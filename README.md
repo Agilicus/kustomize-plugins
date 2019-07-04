@@ -1,4 +1,7 @@
-Various plugins for kustomize. 
+## kustomize-plugins
+Various plugins for kustomize. These are ones I needed,
+YMMV on how useful they are. They are all released under
+Apache 2.0 license.
 
 Install: `cp -pr agilicus ~/.config/kustomize/plugin/`
 
@@ -38,3 +41,17 @@ metadata:
 argsOneLiner: s/500.500.500.500/35.203.108.37/g
 #argsFromFile: sed-input.txt
 ```
+
+## IstioIngressGenerator
+
+This will auto-generate an istio VirtualService + Gateway + Certificate.
+Use with cert-manager to have Istio behave the same as nginx-ingress.
+
+## BranchRestrict
+
+Prevent users from applying a set of yaml when not on master
+
+## CertificateTransformer
+
+Change all certificates to e.g. Let's Encrypt Staging
+
