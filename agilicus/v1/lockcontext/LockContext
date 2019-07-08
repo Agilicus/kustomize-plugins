@@ -1,0 +1,59 @@
+#!/usr/bin/env /usr/bin/python3
+
+import subprocess
+import sys
+import fnmatch
+import yaml
+
+with open(sys.argv[1], "r") as stream:
+    try:
+        data = yaml.safe_load(stream)
+    except yaml.YAMLError as exc:
+        print(
+            "Error parsing LockContext generator input (%s)", file=sys.stderr
+        )
+        sys.exit(1)
+
+
+def allow(context, target):
+    print("---")
+    sys.exit(0)
+
+
+def denied(context, target):
+    print(
+        f"Error: you are on context '{context}', denied by rule '{target}'",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
+
+try:
+    context = (
+        subprocess.check_output(
+            ["/usr/bin/kubectl", "config", "current-context"],
+            stderr=subprocess.STDOUT,
+        )
+        .strip()
+        .decode("ascii")
+    )
+except subprocess.CalledProcessError as exc:
+    if "error: current-context is not set" not in exc.output.decode("ascii"):
+        print(
+            f"Error in /usr/bin/kubectl config current-context: f{exc.output}",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+    else:
+        # Rationale: if no context set, we can't cause trouble, e.g. in CI
+        allow("", "")
+
+for target in data["allowed_contexts"]:
+    if fnmatch.filter([context], target):
+        allow(context, target)
+
+for target in data["denied_contexts"]:
+    if fnmatch.filter([context], target):
+        denied(context, target)
+
+denied(context, "Fall-through")
