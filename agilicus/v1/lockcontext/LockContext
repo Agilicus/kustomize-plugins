@@ -1,5 +1,6 @@
 #!/usr/bin/env /usr/bin/python3
 
+import shutil
 import subprocess
 import sys
 import fnmatch
@@ -28,10 +29,16 @@ def denied(context, target):
     sys.exit(1)
 
 
+# Try to get kubectl from a well-known set of paths (for security reasons).
+PATH = "/bin:/usr/bin:/snap/bin"
+kubectl = shutil.which("kubectl", path=PATH)
+if not kubectl:
+    print(f"Error: could not find kubectl on path '{PATH}'", file=sys.stderr)
+    sys.exit(1)
 try:
     context = (
         subprocess.check_output(
-            ["/usr/bin/kubectl", "config", "current-context"],
+            [kubectl, "config", "current-context"],
             stderr=subprocess.STDOUT,
         )
         .strip()
@@ -40,7 +47,7 @@ try:
 except subprocess.CalledProcessError as exc:
     if "error: current-context is not set" not in exc.output.decode("ascii"):
         print(
-            f"Error in /usr/bin/kubectl config current-context: f{exc.output}",
+            f"Error in {kubectl} config current-context: f{exc.output}",
             file=sys.stderr,
         )
         sys.exit(1)
