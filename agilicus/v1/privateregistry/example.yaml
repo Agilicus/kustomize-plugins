@@ -1,0 +1,8 @@
+---
+apiVersion: agilicus/v1
+kind: PrivateRegistry
+metadata:
+  name: not-used-pr
+secret: regcred
+input_secret: .dockerconfigjson
+input_secret_file: secrets.enc.yaml

@@ -3,25 +3,75 @@
 import sys
 from itertools import tee
 import yaml
+import shutil
+import os
+import subprocess
 
-with open(sys.argv[1], 'r') as stream:
+with open(sys.argv[1], "r") as stream:
     try:
         data = yaml.safe_load(stream)
     except yaml.YAMLError as exc:
         print("Error parsing namespace generator input (%s)", file=sys.stderr)
 
-#{'apiVersion': 'agilicus/v1', 'kind': 'NamespaceGenerator', 'metadata': {'name': 'not-used'}, 'labels': {'a1': 'val1', 'a2': 'val2 b'}, 'namespaces': ['ns1', 'ns2']}
+if "addRegistrySecret" in data and data["addRegistrySecret"]:
+    sops = shutil.which(
+        "sops",
+        path="/bin:/usr/bin:/snap/bin:%s/go/bin" % os.path.expanduser("~"),
+    )
+    if not sops:
+        print("Error in PrivateRegistry: sops not on path")
+        sys.exit(1)
+
+    try:
+        secret_value = (
+            subprocess.check_output(
+                [
+                    sops,
+                    "-d",
+                    "--extract",
+                    '["%s"]' % data["input_secret"],
+                    data["input_secret_file"],
+                ],
+                stderr=subprocess.STDOUT,
+            )
+            .strip()
+            .decode("ascii")
+        )
+    except subprocess.CalledProcessError as exc:
+        print("Is your secret in %s dir?" % os.getcwd(), file=sys.stderr)
+        print(f"Error calling sops: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+
 def gen(ns, labels):
-    print("""---
+    print(
+        """---
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: %s""" % ns)
+  name: %s"""
+        % ns
+    )
     if len(labels):
         print("  labels:")
         for k in labels.keys():
-            print("    %s: %s" % ( k, labels[k]))
+            print("    %s: %s" % (k, labels[k]))
 
-for ns in data['namespaces']:
-    gen(ns, data['labels'])
 
+for ns in data["namespaces"]:
+    gen(ns, data["labels"])
+    if "addRegistrySecret" in data and data["addRegistrySecret"]:
+        SECRET = f"""
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: regcred
+  namespace: {ns}
+  annotations:
+    kustomize.config.k8s.io/id: 1
+type: kubernetes.io/dockerconfigjson
+stringData:
+  .dockerconfigjson: '{secret_value}'
+"""
+        print(SECRET)

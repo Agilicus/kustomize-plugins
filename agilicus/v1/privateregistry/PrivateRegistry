@@ -1,0 +1,49 @@
+#!/usr/bin/python3
+
+import sys
+import yaml
+import shutil
+
+with open(sys.argv[1], "r") as stream:
+    try:
+        data = yaml.safe_load(stream)
+    except yaml.YAMLError as exc:
+        print("Error parsing PrivateRegistry input", file=sys.stderr)
+        sys.exit(1)
+
+match_list = [
+    "DaemonSet",
+    "Deployment",
+    "StatefulSet",
+    "ReplicaSet",
+    "CronJob",
+]
+
+def add_cred(obj, secret):
+    if obj["kind"] == "CronJob":
+        jp = obj["spec"]["jobTemplate"]["spec"]["template"]["spec"]
+    if (
+        obj["kind"] == "Deployment"
+        or obj["kind"] == "StatefulSet"
+        or obj["kind"] == "ReplicaSet"
+    ):
+        jp = obj["spec"]["template"]["spec"]
+        if 'imagePullSecrets' not in jp:
+            jp['imagePullSecrets'] = []
+        jp["imagePullSecrets"].append({"name": secret})
+    print("---")
+    print(yaml.dump(obj, default_flow_style=False))
+
+try:
+    for yaml_input in yaml.safe_load_all(sys.stdin):
+        if yaml_input and yaml_input["kind"] in match_list:
+            add_cred(yaml_input, data["secret"])
+        else:
+            print("---")
+            print(yaml.dump(yaml_input, default_flow_style=False))
+except yaml.YAMLError as exc:
+    print("Error parsing YAML in PrivateRegistry\n\n%s\n\n" % input, file=sys.stderr)
+    sys.exit(1)
+
+## I would like to emit the secrets now, but cannot, a Transformer cannot
+## emit
