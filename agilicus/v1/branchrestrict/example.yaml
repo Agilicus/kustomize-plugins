@@ -1,0 +1,11 @@
+---
+apiVersion: agilicus/v1
+kind: LockContext
+metadata:
+  name: not-used-lc
+name: lock-context
+allowed_contexts:
+  - noc-dev
+denied_contexts:
+  - '*'
+remote_update: true

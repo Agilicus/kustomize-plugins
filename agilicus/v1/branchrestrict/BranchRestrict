@@ -5,33 +5,59 @@ import sys
 import fnmatch
 import yaml
 
-with open(sys.argv[1], 'r') as stream:
+# if remote_update is True, we do a `git remote update` and then
+# check `git status -uno --porcelain` is clean (empty)
+with open(sys.argv[1], "r") as stream:
     try:
         data = yaml.safe_load(stream)
     except yaml.YAMLError as exc:
-        print("Error parsing BranchRestrict generator input (%s)",
-              file=sys.stderr)
+        print(
+            "Error parsing BranchRestrict generator input (%s)",
+            file=sys.stderr,
+        )
+        sys.exit(1)
 
-branch = subprocess.check_output(['/usr/bin/git',
-                                  'rev-parse',
-                                  '--abbrev-ref',
-                                  'HEAD']).strip().decode('ascii')
+if "remote_update" in data and data["remote_update"]:
+    subprocess.check_output(["/usr/bin/git", "remote", "update"])
+    files = (
+        subprocess.check_output(
+            ["/usr/bin/git", "status", "-uno", "--porcelain"]
+        )
+        .strip()
+        .decode("ascii")
+    )
+    if len(files):
+        print(f"Error: some files not committed.\n{files}", file=sys.stderr)
+        sys.exit(1)
+
+branch = (
+    subprocess.check_output(
+        ["/usr/bin/git", "rev-parse", "--abbrev-ref", "HEAD"]
+    )
+    .strip()
+    .decode("ascii")
+)
+
 
 def allow(branch, target):
     print("---")
     sys.exit(0)
 
+
 def denied(branch, target):
-    print(f"Error: you are on branch '{branch}', denied by rule '{target}'",
-           file=sys.stderr)
+    print(
+        f"Error: you are on branch '{branch}', denied by rule '{target}'",
+        file=sys.stderr,
+    )
     sys.exit(1)
 
-for target in data['allowed_branches']:
+
+for target in data["allowed_branches"]:
     if fnmatch.filter([branch], target):
         allow(branch, target)
 #        print("AMATCH: branch <%s> is matched by target <%s>" % (branch,target))
 
-for target in data['denied_branches']:
+for target in data["denied_branches"]:
     if fnmatch.filter([branch], target):
         denied(branch, target)
 #        print("DMATCH: branch <%s> is matched by target <%s>" % (branch,target))
