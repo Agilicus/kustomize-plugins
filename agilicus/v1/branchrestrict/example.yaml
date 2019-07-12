@@ -5,6 +5,7 @@ metadata:
   name: not-used-lc
 name: lock-context
 allowed_branches:
+  - master
   - noc-dev
 denied_branches:
   - '*'
