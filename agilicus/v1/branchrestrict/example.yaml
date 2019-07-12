@@ -1,11 +1,11 @@
 ---
 apiVersion: agilicus/v1
-kind: LockContext
+kind: LockBranch
 metadata:
   name: not-used-lc
 name: lock-context
-allowed_contexts:
+allowed_branches:
   - noc-dev
-denied_contexts:
+denied_branches:
   - '*'
 remote_update: true
