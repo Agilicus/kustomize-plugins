@@ -1,0 +1,8 @@
+---
+apiVersion: agilicus/v1
+kind: SecretTransformer
+metadata:
+  name: not-used-ns
+source: secrets.enc.yaml
+keys:
+  - secret
