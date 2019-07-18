@@ -1,0 +1,32 @@
+#!/usr/bin/env /usr/bin/python3
+
+import sys
+import textwrap
+from itertools import tee
+import yaml
+
+from deployment import deployment
+from virt_service import virt_service
+from service import service
+
+with open(sys.argv[1], 'r') as stream:
+    try:
+        cfg = yaml.safe_load(stream)
+    except yaml.YAMLError as exc:
+        print("Error parsing ApiGenerator input (%s)", file=sys.stderr)
+        sys.exit(1)
+
+deployment = yaml.load(deployment.format(cfg=cfg))
+virt_service = yaml.load(virt_service.format(cfg=cfg))
+service = yaml.load(service.format(cfg=cfg))
+
+deployment['spec']['template']['spec']['containers'][0]['env'] = cfg['env']
+
+print("---")
+print(yaml.dump(deployment, default_flow_style=False))
+
+print("---")
+print(yaml.dump(virt_service, default_flow_style=False))
+
+print("---")
+print(yaml.dump(service, default_flow_style=False))
