@@ -12,6 +12,6 @@ spec:
       protocol: TCP
       targetPort: http
   selector:
-    app: {cfg[version]}-{cfg[name]}
+    app: {cfg[versions][0]}-{cfg[name]}
   type: ClusterIP
 """

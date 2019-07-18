@@ -7,7 +7,9 @@ name: applications
 image: cr.agilicus.com/platform/applications
 port: 5006
 replicas: 2
-version: v2
+versions: 
+  - v1
+  - v2
 env:
   - FLUENT_HOST: forward.fluent-bit
   - ACCESS_TOKEN_PUB_KEY: ${sops:ACCESS_TOKEN_PUB_KEY}

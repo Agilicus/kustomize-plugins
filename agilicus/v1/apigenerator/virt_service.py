@@ -11,12 +11,10 @@ spec:
   gateways:
     - istio-system/api-gw
   http:
-    - match:
-      - uri:
-          prefix: /{cfg[version]}/{cfg[name]}
+    - match: []
       route:
         - destination:
-            host: {cfg[version]}-{cfg[name]}.api.svc.cluster.local
+            host: {cfg[versions][0]}-{cfg[name]}.api.svc.cluster.local
             port:
               number: {cfg[port]}
       corsPolicy:
