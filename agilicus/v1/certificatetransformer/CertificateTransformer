@@ -8,12 +8,23 @@ with open(sys.argv[1], 'r') as stream:
         data = yaml.safe_load(stream)
     except yaml.YAMLError as exc:
         print("Error parsing CertificateTransformer input", file=sys.stderr)
+if 'except' not in data:
+    data['except'] = []
 
 try:
-    for yaml_input in yaml.safe_load_all(sys.stdin):
+    if len(sys.argv) >= 2:
+        f = open(sys.argv[2], 'r')
+    else:
+        f = sys.stdin
+    for yaml_input in yaml.safe_load_all(f):
         if yaml_input['kind'] == 'Certificate' and yaml_input['apiVersion'] == 'certmanager.k8s.io/v1alpha1':
-            if yaml_input['spec']['issuerRef']['name'] == data['oldIssuer']:
-                yaml_input['spec']['issuerRef']['name'] = data['newIssuer']
+            if "namespace" in yaml_input['metadata']:
+                name = yaml_input['metadata']['namespace'] + '/' + yaml_input['metadata']['name']
+            else:
+                name = yaml_input['metadata']['name']
+            if name not in data['except']:
+                if yaml_input['spec']['issuerRef']['name'] == data['oldIssuer']:
+                    yaml_input['spec']['issuerRef']['name'] = data['newIssuer']
         print("---")
         print(yaml.dump(yaml_input, default_flow_style=False))
 except yaml.YAMLError as exc:

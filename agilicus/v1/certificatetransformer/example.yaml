@@ -6,3 +6,5 @@ metadata:
 name: to-staging
 oldIssuer: letsencrypt-istio
 newIssuer: letsencrypt-istio-staging
+except:
+  - istio-system/auth-certificate

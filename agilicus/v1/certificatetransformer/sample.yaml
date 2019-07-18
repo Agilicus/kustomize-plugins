@@ -1,3 +1,4 @@
+---
 apiVersion: certmanager.k8s.io/v1alpha1
 kind: Certificate
 metadata:
@@ -5,6 +6,25 @@ metadata:
     app: alertmanager
     cluster: don-dev
   name: alertmanager-alertmanager-certificate
+  namespace: istio-system
+spec:
+  acme:
+    config:
+    - domains:
+      - alert.don-dev.agilicus.ca
+      http01:
+        ingressClass: istio
+  commonName: alert.don-dev.agilicus.ca
+  dnsNames:
+  - alert.don-dev.agilicus.ca
+  issuerRef:
+    name: letsencrypt-istio
+  secretName: h660-alertmanager-alertmanager-certificate
+---
+apiVersion: certmanager.k8s.io/v1alpha1
+kind: Certificate
+metadata:
+  name: auth-certificate
   namespace: istio-system
 spec:
   acme:
