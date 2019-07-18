@@ -15,6 +15,7 @@ with open(sys.argv[1], 'r') as stream:
         data = yaml.safe_load(stream)
     except yaml.YAMLError as exc:
         print("Error parsing IstioIngressGenerator generator input (%s)", file=sys.stderr)
+        sys.exit(1)
 
 if not 'namespace' in data['metadata']:
     data['metadata']['namespace'] = 'default'
