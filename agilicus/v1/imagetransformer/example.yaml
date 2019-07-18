@@ -1,0 +1,15 @@
+---
+apiVersion: agilicus/v1
+kind: ImageTransformer
+metadata:
+  name: not-used-it
+images:
+  - name: X
+    new_name: bar1
+    tag: Y
+  - name: bar
+    tag: v1
+  - name: busybox
+    new_name: alpine
+  - name: nginx
+    tag: 1.16.0

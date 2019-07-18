@@ -1,0 +1,82 @@
+#!/usr/bin/python3
+
+import sys
+import yaml
+
+with open(sys.argv[1], "r") as stream:
+    try:
+        data = yaml.safe_load(stream)
+    except yaml.YAMLError as exc:
+        print("Error parsing PrivateRegistry input", file=sys.stderr)
+        sys.exit(1)
+
+# We make this an associative array. Can't do it in the
+# input yaml since there is a '/' in the key
+images = {}
+rename_images = {}
+for image in data['images']:
+    new_name = None
+    tag = None
+    if 'new_name' in image:
+        new_name = image['new_name']
+    if 'tag' in image:
+        tag = image['tag']
+    images[image['name']] = { "tag": tag, "new_name": new_name }
+
+match_list = [
+    "DaemonSet",
+    "Deployment",
+    "StatefulSet",
+    "ReplicaSet",
+    "CronJob",
+    "Job",
+    "Pod"
+]
+
+def set_tag(obj, images):
+    spec = None
+    if obj["kind"] == "CronJob":
+        spec = obj["spec"]["jobTemplate"]["spec"]["template"]["spec"]
+    if obj["kind"] == "Pod":
+        spec = obj["spec"]
+    if (
+        obj["kind"] == "Deployment"
+        or obj["kind"] == "StatefulSet"
+        or obj["kind"] == "ReplicaSet"
+        or obj["kind"] == "Job"
+    ):
+        spec = obj["spec"]["template"]["spec"]
+    if not spec:
+        print(f"Error: no spec found for obj {obj}", file=sys.stderr)
+        sys.exit(1)
+    if "containers" not in spec:
+        print(f"Error: no containers found in obj {obj}", file=sys.stderr)
+        sys.exit(1)
+    for container in spec['containers']:
+        image = container['image'].split(':')[0]
+        if image in images:
+            new_name = image;
+            if images[image]['new_name']:
+                new_name = images[image]['new_name']
+            if images[image]['tag']:
+                container['image'] = new_name + ':' + images[image]['tag']
+            else:
+                container['image'] = new_name
+    print("---")
+    print(yaml.dump(obj, default_flow_style=False))
+
+try:
+    if len(sys.argv) >= 2:
+        f = open(sys.argv[2], 'r')
+    else:
+        f = sys.stdin
+    for yaml_input in yaml.safe_load_all(f):
+        if yaml_input and yaml_input["kind"] in match_list:
+            set_tag(yaml_input, images)
+        else:
+            print("---")
+            print(yaml.dump(yaml_input, default_flow_style=False))
+except yaml.YAMLError as exc:
+    print("Error parsing YAML in ImageTransformer\n\n%s\n\n" % input, file=sys.stderr)
+    sys.exit(1)
+
