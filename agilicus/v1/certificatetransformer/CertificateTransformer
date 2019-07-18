@@ -12,11 +12,7 @@ if 'except' not in data:
     data['except'] = []
 
 try:
-    if len(sys.argv) >= 2:
-        f = open(sys.argv[2], 'r')
-    else:
-        f = sys.stdin
-    for yaml_input in yaml.safe_load_all(f):
+    for yaml_input in yaml.safe_load_all(sys.stdin):
         if yaml_input['kind'] == 'Certificate' and yaml_input['apiVersion'] == 'certmanager.k8s.io/v1alpha1':
             if "namespace" in yaml_input['metadata']:
                 name = yaml_input['metadata']['namespace'] + '/' + yaml_input['metadata']['name']
