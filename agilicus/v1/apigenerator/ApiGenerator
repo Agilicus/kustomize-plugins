@@ -8,6 +8,7 @@ import yaml
 from deployment import deployment
 from virt_service import virt_service
 from service import service
+from database import database
 
 with open(sys.argv[1], 'r') as stream:
     try:
@@ -33,3 +34,8 @@ print(yaml.dump(virt_service, default_flow_style=False))
 
 print("---")
 print(yaml.dump(service, default_flow_style=False))
+
+if "db" in cfg:
+    database = yaml.load(database.format(cfg=cfg))
+    print("---")
+    print(yaml.dump(database, default_flow_style=False))

@@ -1,3 +1,8 @@
+## ApiGenerator
+
+Given an input file like below, create a Deployment, Service, VirtualService, and Database CRD.
+
+```
 ---
 apiVersion: agilicus/v1
 kind: ApiGenerator
@@ -19,4 +24,4 @@ db:
   name: applications
   user: applications
   password: ${sops:dbpass}
-
+```

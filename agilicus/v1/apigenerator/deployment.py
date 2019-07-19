@@ -4,6 +4,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {cfg[versions][0]}-{cfg[name]}
+  namespace: {cfg[metadata][namespace]}
 spec:
   replicas: {cfg[replicas]}
   selector:

@@ -4,7 +4,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
   name: {cfg[name]}-api-vs
-  namespace: api
+  namespace: {cfg[metadata][namespace]}
 spec:
   hosts:
     - api.__ROOT_DOMAIN__

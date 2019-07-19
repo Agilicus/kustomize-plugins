@@ -4,7 +4,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {cfg[name]}
-  namespace: api
+  namespace: {cfg[metadata][namespace]}
 spec:
   ports:
     - name: http
