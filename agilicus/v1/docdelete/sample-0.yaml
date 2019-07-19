@@ -1,0 +1,30 @@
+
+---
+apiVersion: agilicus/v1
+kind: RbacRole
+metadata:
+  name: foo1
+  namespace: bar
+result: deleted
+---
+apiVersion: agilicus/v1
+kind: RbacRole
+metadata:
+  name: foo
+  namespace: bar
+result: allowed
+---
+apiVersion: agilicus/v1
+kind: RbacRole
+metadata:
+  name: foo1
+  namespace: bar1
+result: allowed
+---
+apiVersion: agilicus/v1
+kind: RbacRole
+metadata:
+  name: foo
+  namespace: bar1
+result: allowed
+

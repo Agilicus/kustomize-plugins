@@ -1,0 +1,112 @@
+#!/usr/bin/env /usr/bin/python3
+
+import sys
+import yaml
+
+with open(sys.argv[1], "r") as stream:
+    try:
+        cfg = yaml.safe_load(stream)
+    except yaml.YAMLError as exc:
+        print(f"Error parsing DocDelete input {sys.argv[1]}", file=sys.stderr)
+        sys.exit(1)
+
+possible = {}
+matches = {}
+# Create a hash-map dict rather than linear list for later searching
+for match_list in cfg["delete"]:
+    possible[match_list["apiVersion"] + "/" + match_list["kind"]] = match_list
+    if "namespace" in match_list:
+        if "name" not in match_list:
+            matches[
+                match_list["apiVersion"]
+                + "/"
+                + match_list["kind"]
+                + "/"
+                + match_list["namespace"]
+            ] = match_list
+        else:
+            matches[
+                match_list["apiVersion"]
+                + "/"
+                + match_list["kind"]
+                + "/"
+                + match_list["namespace"]
+                + "/"
+                + match_list["name"]
+            ] = match_list
+    else:
+        if "name" in match_list:
+            matches[
+                match_list["apiVersion"]
+                + "/"
+                + match_list["kind"]
+                + "/"
+                + match_list["name"]
+            ] = match_list
+        else:
+            matches[
+                match_list["apiVersion"] + "/" + match_list["kind"]
+            ] = match_list
+
+
+def match(doc, cfg):
+    doc_type = doc["apiVersion"] + "/" + doc["kind"]
+
+    if doc_type in possible:
+        """ Only search if the doc might be in the list, find best match
+            If the input doc has no namespace, only match against name or
+            type-alone.  If the input doc has namespace, match against
+            namespace, namespace+name, or name
+        """
+        if "namespace" in doc["metadata"]:
+            doc_type_ns = (
+                doc["apiVersion"]
+                + "/"
+                + doc["kind"]
+                + "/"
+                + doc["metadata"]["namespace"]
+            )
+            doc_type_ns_n = (
+                doc["apiVersion"]
+                + "/"
+                + doc["kind"]
+                + "/"
+                + doc["metadata"]["namespace"]
+                + "/"
+                + doc["metadata"]["name"]
+            )
+            if doc_type_ns in matches or doc_type_ns_n in matches:
+                return True
+        doc_type_n = (
+            doc["apiVersion"]
+            + "/"
+            + doc["kind"]
+            + "/"
+            + doc["metadata"]["name"]
+        )
+        if doc_type_n in matches or doc_type in matches:
+            return True
+
+    return False
+
+
+try:
+    if len(sys.argv) >= 2:
+        f = open(sys.argv[2], "r")
+    else:
+        f = sys.stdin
+    for doc in yaml.safe_load_all(f):
+        print("---")
+        if doc and not match(doc, cfg):
+            print(yaml.dump(doc, default_flow_style=False))
+        else:
+            if "namespace" not in doc["metadata"]:
+                doc["metadata"]["namespace"] = "default"
+            doc_type = f"{doc['apiVersion']}/{doc['kind']}"
+            doc_name = (
+                f"{doc['metadata']['namespace']}/{doc['metadata']['name']}"
+            )
+            print(f"#  Deleted document {doc_type}/{doc_name}")
+except yaml.YAMLError as exc:
+    print("Error parsing YAML in DocDelete", file=sys.stderr)
+    sys.exit(1)

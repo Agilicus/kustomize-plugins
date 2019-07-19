@@ -1,0 +1,23 @@
+---
+apiVersion: agilicus/v1
+kind: DocDelete
+metadata:
+  name: not-used-doc-delete
+delete: 
+  - apiVersion: agilicus/v1
+    kind: RbacRole
+    name: foo
+    namespace: bar
+    #  - apiVersion: agilicus/v1
+    #    kind: RbacRole
+    #    name: foo1
+    #    namespace: bar
+    #  - apiVersion: agilicus/v1
+    #    kind: RbacRole
+    #    name: foo
+    #    namespace: bar1
+    #  - apiVersion: agilicus/v1
+    #    kind: RbacRole
+    #    name: foo1
+    #    namespace: bar1
+
