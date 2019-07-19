@@ -12,9 +12,12 @@ versions:
   - v1
   - v2
 env:
-  - FLUENT_HOST: forward.fluent-bit
-  - ACCESS_TOKEN_PUB_KEY: ${sops:ACCESS_TOKEN_PUB_KEY}
-  - APPDB: ${sops:APPDB}
+  - name: FLUENT_HOST
+    value: forward.fluent-bit
+  - name: ACCESS_TOKEN_PUB_KEY
+    value: ${sops:ACCESS_TOKEN_PUB_KEY}
+  - name: APPDB
+    value: ${sops:APPDB}
 db:
   name: applications
   user: applications
