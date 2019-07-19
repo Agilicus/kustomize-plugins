@@ -42,6 +42,7 @@ def set_tag(obj, images):
     if (
         obj["kind"] == "Deployment"
         or obj["kind"] == "StatefulSet"
+        or obj["kind"] == "DaemonSet"
         or obj["kind"] == "ReplicaSet"
         or obj["kind"] == "Job"
     ):
@@ -77,6 +78,6 @@ try:
             print("---")
             print(yaml.dump(yaml_input, default_flow_style=False))
 except yaml.YAMLError as exc:
-    print("Error parsing YAML in ImageTransformer\n\n%s\n\n" % input, file=sys.stderr)
+    print("Error parsing YAML in ImageTransformer", file=sys.stderr)
     sys.exit(1)
 
