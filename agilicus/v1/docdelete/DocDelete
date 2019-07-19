@@ -91,7 +91,7 @@ def match(doc, cfg):
 
 
 try:
-    if len(sys.argv) >= 2:
+    if len(sys.argv) > 2:
         f = open(sys.argv[2], "r")
     else:
         f = sys.stdin
