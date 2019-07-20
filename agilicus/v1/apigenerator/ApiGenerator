@@ -17,11 +17,17 @@ with open(sys.argv[1], 'r') as stream:
         print("Error parsing ApiGenerator input (%s)", file=sys.stderr)
         sys.exit(1)
 
+if len(cfg['versions'][0]) == 0:
+    cfg['versions'][0] = 'all'
+
 deployment = yaml.load(deployment.format(cfg=cfg))
 virt_service = yaml.load(virt_service.format(cfg=cfg))
 service = yaml.load(service.format(cfg=cfg))
 for version in cfg['versions']:
-    match = { 'uri' : { 'prefix': f"/{version}/{cfg['name']}" } }
+    if version == "all":
+        match = { 'uri' : { 'prefix': f"/{cfg['name']}" } }
+    else:
+        match = { 'uri' : { 'prefix': f"/{version}/{cfg['name']}" } }
     virt_service['spec']['http'][0]['match'].append( match )
 
 deployment['spec']['template']['spec']['containers'][0]['env'] = cfg['env']
