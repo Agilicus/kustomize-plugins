@@ -1,0 +1,60 @@
+#!/usr/bin/env /usr/bin/python3
+
+import sys
+from itertools import tee
+import yaml
+import shutil
+import os
+import subprocess
+import tempfile
+import glob
+from stat import *
+
+with open(sys.argv[1], "r") as stream:
+    try:
+        cfg = yaml.safe_load(stream)
+    except yaml.YAMLError as exc:
+        print("Error parsing namespace generator input (%s)", file=sys.stderr)
+        sys.exit(1)
+
+
+def test_and_output(fname):
+    with open(fname) as stream:
+        for doc in yaml.safe_load_all(stream):
+            if (
+                doc
+                and "kind" in doc
+                and doc["kind"] == "CustomResourceDefinition"
+            ):
+                print("---")
+                print(yaml.dump(doc, default_flow_style=False))
+
+def gen_dir(dirn):
+    for fname in glob.glob(os.path.join(dirn, "*.yaml")):
+        test_and_output(fname)
+
+def gen(repo):
+    try:
+        mode = os.stat(repo).st_mode
+        if S_ISDIR(mode):
+            gen_dir(os.path.join(repo))
+        elif S_ISREG(mode):
+            test_and_output(os.path.join(repo))
+        else:
+            print(f"Error: file/repo {repo} is neither dir nor file", file=sys.stderr)
+            sys.exit(1)
+    except FileNotFoundError:
+        git = shutil.which("git", path="/bin:/usr/bin")
+        odir = tempfile.TemporaryDirectory()
+
+        subprocess.check_output(
+            [git, "clone", repo, odir.name], stderr=subprocess.STDOUT
+        )
+
+        gen_dir(odir.name)
+
+        odir.cleanup()
+
+
+for repo in cfg["resources"]:
+    gen(repo)

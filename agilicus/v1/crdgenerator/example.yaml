@@ -1,0 +1,7 @@
+---
+apiVersion: agilicus/v1
+kind: CrdGenerator
+metadata:
+  name: not-used-crd
+resources: 
+  - git@git.agilicus.com:kcharts/elastic.git
