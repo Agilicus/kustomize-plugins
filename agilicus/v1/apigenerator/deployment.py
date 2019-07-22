@@ -3,17 +3,17 @@ deployment = """
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {cfg[versions][0]}-{cfg[name]}
+  name: {cfg[name_version]}-{cfg[name]}
   namespace: {cfg[metadata][namespace]}
 spec:
   replicas: {cfg[replicas]}
   selector:
     matchLabels:
-      app: {cfg[versions][0]}-{cfg[name]}
+      app: {cfg[name_version]}-{cfg[name]}
   template:
     metadata:
       labels:
-        app: {cfg[versions][0]}-{cfg[name]}
+        app: {cfg[name_version]}-{cfg[name]}
       annotations:
         fluentbit.io/parser: "json"
     spec:

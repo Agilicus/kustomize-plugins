@@ -3,7 +3,7 @@ service = """
 apiVersion: v1
 kind: Service
 metadata:
-  name: {cfg[versions][0]}-{cfg[name]}
+  name: {cfg[name_version]}-{cfg[name]}
   namespace: {cfg[metadata][namespace]}
 spec:
   ports:
@@ -12,6 +12,6 @@ spec:
       protocol: TCP
       targetPort: http
   selector:
-    app: {cfg[versions][0]}-{cfg[name]}
+    app: {cfg[name_version]}-{cfg[name]}
   type: ClusterIP
 """

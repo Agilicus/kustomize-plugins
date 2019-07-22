@@ -3,7 +3,7 @@ virt_service = """
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
-  name: {cfg[name]}-api-vs
+  name: {cfg[name_version]}-{cfg[name]}-api-vs
   namespace: {cfg[metadata][namespace]}
 spec:
   hosts:
@@ -14,7 +14,7 @@ spec:
     - match: []
       route:
         - destination:
-            host: {cfg[versions][0]}-{cfg[name]}.api.svc.cluster.local
+            host: {cfg[name_version]}-{cfg[name]}.api.svc.cluster.local
             port:
               number: {cfg[port]}
       corsPolicy:

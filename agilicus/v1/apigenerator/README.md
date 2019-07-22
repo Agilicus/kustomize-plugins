@@ -29,3 +29,13 @@ db:
   password: ${sops:dbpass}
 
 ```
+
+Notes:
+
+- You can add an optional `name_version` field, it will override the prefix
+of the Deployment/Service/VirtualService
+
+- You can specify paths in the versions (e.g. v1/foo). If you do, it must
+fully specify all of the endpoints. Use this if your API container is > 1 API
+endpoint (e.g. if you have a container that is /v1/foo, /v1/bar, /v2/foo, you
+must specify all those).
