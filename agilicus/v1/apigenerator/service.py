@@ -3,7 +3,7 @@ service = """
 apiVersion: v1
 kind: Service
 metadata:
-  name: {cfg[name]}
+  name: {cfg[versions][0]}-{cfg[name]}
   namespace: {cfg[metadata][namespace]}
 spec:
   ports:
