@@ -4,6 +4,7 @@ import sys
 import textwrap
 from itertools import tee
 import yaml
+import re
 
 from deployment import deployment
 from virt_service import virt_service
@@ -30,10 +31,10 @@ for version in cfg['versions']:
     if version == "all":
         match = { 'uri' : { 'prefix': f"/{cfg['name']}" } }
     else:
-        if len(cfg['versions'][0].split('/')) >1:
-            match = { 'uri' : { 'prefix': f"/{version}" } }
-        else:
+        if re.match("^v[0-9]", version):
             match = { 'uri' : { 'prefix': f"/{version}/{cfg['name']}" } }
+        else:
+            match = { 'uri' : { 'prefix': f"/{version}" } }
     virt_service['spec']['http'][0]['match'].append( match )
 
 cfg['env'].append({ 'name': "API_ROOT", 'value': "api.__ROOT_DOMAIN__" })
