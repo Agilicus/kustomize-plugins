@@ -89,7 +89,10 @@ for version in cfg['versions']:
         match = { 'uri' : { 'prefix': f"/{cfg['name']}" } }
     else:
         if re.match("^v[0-9]", version):
-            match = { 'uri' : { 'prefix': f"/{version}/{cfg['name']}" } }
+            if '/' in version:
+                match = { 'uri' : { 'prefix': f"/{version}" } }
+            else:
+                match = { 'uri' : { 'prefix': f"/{version}/{cfg['name']}" } }
         else:
             match = { 'uri' : { 'prefix': f"/{version}" } }
     virt_service['spec']['http'][0]['match'].append( match )
