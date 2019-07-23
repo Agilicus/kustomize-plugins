@@ -1,0 +1,9 @@
+---
+apiVersion: agilicus/v1
+kind: SecretGenerator
+metadata:
+  name: mysecret
+  namespace: default
+type: Secret
+secret:
+  - secret

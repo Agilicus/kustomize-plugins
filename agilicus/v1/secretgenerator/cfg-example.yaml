@@ -1,0 +1,9 @@
+---
+apiVersion: agilicus/v1
+kind: SecretGenerator
+metadata:
+  name: myconfig
+  namespace: default
+type: ConfigMap
+secret:
+  - secret
