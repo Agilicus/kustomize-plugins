@@ -4,12 +4,16 @@ import sys
 import textwrap
 from itertools import tee
 import yaml
+import shutil
+import os
+import subprocess
 import re
 
 from deployment import deployment
 from virt_service import virt_service
 from service import service
 from database import database
+from secret import secret
 
 with open(sys.argv[1], 'r') as stream:
     try:
@@ -24,6 +28,59 @@ if len(cfg['versions'][0]) == 0:
 if 'name_version' not in cfg:
     cfg['name_version'] = cfg['versions'][0].split('/')[0]
 
+def find_file(f):
+    """ if file is in current dir, return it, else return it from the PWD.
+        Why? Kustomize changes directory, but leaves PWD alone. This allows
+        us to have secrets.enc.yaml in the kustomization dir, or deploy
+        dir
+    """
+    try:
+        os.stat(f)
+        return f
+    except FileNotFoundError:
+        return os.path.join(os.environ['PWD'], f)
+
+def sops_fetch(cfg, keys):
+    sops = shutil.which(
+        "sops", path="/bin:/usr/bin:/snap/bin:%s/go/bin" % os.path.expanduser("~")
+    )
+    if not sops:
+        print("Error in SecretTransformer: sops not on path", file=sys.stderr)
+        sys.exit(1)
+
+    if "secret_source" not in cfg:
+        cfg["secret_source"] = "secrets.enc.yaml"
+
+    sfile = find_file(cfg["secret_source"])
+    try:
+        with subprocess.Popen(
+            [sops, "-d", sfile], stdout=subprocess.PIPE
+        ) as f:
+            secrets = yaml.safe_load(f.stdout)
+    except subprocess.CalledProcessError as exc:
+        print(
+            "Is your secret-file %s in %s dir?" % (cfg["secret_source"], os.getcwd()),
+            file=sys.stderr,
+        )
+        print(f"Error calling sops: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+    if not secrets:
+        print("Error: secrets is empty", file=sys.stderr)
+        sys.exit(1)
+
+    # Now decimate keys. If keys = "*" keep all, else keep only ref ones
+    if not (keys[0] == "*"):
+        for key in list(secrets):
+            if key not in keys:
+                secrets.pop(key)
+
+    return secrets
+#    for k, v in secrets.items():
+#        print(f"k: {k}, v: {v}")
+
+
+secret = yaml.load(secret.format(cfg=cfg))
 deployment = yaml.load(deployment.format(cfg=cfg))
 virt_service = yaml.load(virt_service.format(cfg=cfg))
 service = yaml.load(service.format(cfg=cfg))
@@ -53,3 +110,13 @@ if "db" in cfg:
     database = yaml.load(database.format(cfg=cfg))
     print("---")
     print(yaml.dump(database, default_flow_style=False))
+
+if 'secret' in cfg and len(cfg['secret']):
+    secrets = sops_fetch(cfg, cfg['secret'])
+else:
+    secrets = []
+
+secret['stringData'] = secrets
+
+print("---")
+print(yaml.dump(secret, default_flow_style=False))

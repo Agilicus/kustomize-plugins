@@ -27,6 +27,9 @@ spec:
             - containerPort: {cfg[port]}
               name: http
           env: []
+          envFrom:
+            - secretRef:
+                name: {cfg[name_version]}-{cfg[name]}
           livenessProbe:
             httpGet:
               path: /healthz
