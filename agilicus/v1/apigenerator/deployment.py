@@ -29,7 +29,7 @@ spec:
           env: []
           envFrom:
             - secretRef:
-                name: {cfg[name_version]}-{cfg[name]}
+                name: {cfg[name_version]}-{cfg[name]}-{cfg[hash]}
           livenessProbe:
             httpGet:
               path: /healthz

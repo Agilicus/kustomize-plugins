@@ -8,6 +8,7 @@ import shutil
 import os
 import subprocess
 import re
+import zlib
 
 from deployment import deployment
 from virt_service import virt_service
@@ -75,10 +76,18 @@ def sops_fetch(cfg, keys):
             if key not in keys:
                 secrets.pop(key)
 
-    return secrets
-#    for k, v in secrets.items():
-#        print(f"k: {k}, v: {v}")
+    hash_v = 0
+    for k, v in secrets.items():
+        hash_v = hash_v ^ zlib.adler32(bytes(v, 'utf-8'))
+    hash_v = int(hash_v / 10000000) + int(hash_v % 10000000)
 
+    return secrets, hash_v
+
+if 'secret' in cfg and len(cfg['secret']):
+    secrets, cfg['hash'] = sops_fetch(cfg, cfg['secret'])
+else:
+    secrets = []
+    cfg['hash'] = 'none'
 
 secret = yaml.load(secret.format(cfg=cfg))
 deployment = yaml.load(deployment.format(cfg=cfg))
@@ -114,10 +123,6 @@ if "db" in cfg:
     print("---")
     print(yaml.dump(database, default_flow_style=False))
 
-if 'secret' in cfg and len(cfg['secret']):
-    secrets = sops_fetch(cfg, cfg['secret'])
-else:
-    secrets = []
 
 secret['stringData'] = secrets
 
