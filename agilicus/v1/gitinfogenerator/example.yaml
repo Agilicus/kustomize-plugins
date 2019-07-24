@@ -1,0 +1,5 @@
+---
+apiVersion: agilicus/v1
+kind: GitInfoGenerator
+metadata:
+  name: not-used-gig

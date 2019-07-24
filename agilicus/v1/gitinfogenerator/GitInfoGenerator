@@ -1,0 +1,37 @@
+#!/usr/bin/env /usr/bin/python3
+
+import sys
+import yaml
+import shutil
+import os
+import pwd
+import subprocess
+import datetime
+
+with open(sys.argv[1], "r") as stream:
+    try:
+        cfg = yaml.safe_load(stream)
+    except yaml.YAMLError as exc:
+        print("Error parsing namespace generator input (%s)", file=sys.stderr)
+        sys.exit(1)
+
+git = shutil.which("git", path="/bin:/usr/bin")
+
+git_sha = subprocess.check_output([git, "rev-parse", "HEAD"], stderr=subprocess.STDOUT).strip().decode("ascii")
+
+data = """
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: deployment-info
+    namespace: default
+data: {}
+"""
+
+cfgmap = yaml.load(data)
+cfgmap['data']["git-tag"] = git_sha
+cfgmap['data']["applied-on"] = datetime.datetime.utcnow().isoformat()
+cfgmap['data']["applied-by"] = pwd.getpwuid(os.getuid()).pw_name
+
+print("---")
+print(yaml.dump(cfgmap, default_flow_style=False))
