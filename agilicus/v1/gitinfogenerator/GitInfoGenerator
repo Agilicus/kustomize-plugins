@@ -32,6 +32,7 @@ cfgmap = yaml.load(data)
 cfgmap['data']["git-tag"] = git_sha
 cfgmap['data']["applied-on"] = datetime.datetime.utcnow().isoformat()
 cfgmap['data']["applied-by"] = pwd.getpwuid(os.getuid()).pw_name
+cfgmap['data']['applied-dir'] = os.environ['PWD']
 
 print("---")
 print(yaml.dump(cfgmap, default_flow_style=False))
