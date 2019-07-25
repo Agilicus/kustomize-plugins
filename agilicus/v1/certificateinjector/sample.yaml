@@ -1,0 +1,27 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  labels:
+    cluster: noc-dev
+  name: all-users-9215976
+  namespace: api
+stringData:
+  ACCESS_TOKEN_PUB_KEY: |
+    -----BEGIN PUBLIC KEY-----
+    MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAEqn7uVPcs6dqkZ/fB0hi0lSW+aocd
+    UhW9WmJdCNzSa7UCOfO+jeeIYwRZvA6GBaPMDjOPrB4/loTY814vMfqmGw==
+    -----END PUBLIC KEY-----
+  USERDB: cockroachdb://usr:aht2ohth1Dah@cockroachdb-public.cockroachdb:26257/users?sslmode=require
+type: Opaque
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: name
+  namespace: ns
+spec:
+  template:
+    spec:
+      containers:
+        - name: c1

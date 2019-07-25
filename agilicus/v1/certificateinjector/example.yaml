@@ -1,0 +1,12 @@
+---
+apiVersion: agilicus/v1
+kind: CertificateInjector
+metadata:
+  name: not-used-cert-inject
+inject:
+  configMap: cert-inject
+  certs:
+    - fakelerootx1.pem:
+  dir: /etc/ssl/certs
+  targets:
+    - ns.name

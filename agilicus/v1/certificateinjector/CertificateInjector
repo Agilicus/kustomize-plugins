@@ -1,0 +1,95 @@
+#!/usr/bin/env /usr/bin/python3
+
+import sys
+import yaml
+
+with open(sys.argv[1], "r") as stream:
+    try:
+        cfg = yaml.safe_load(stream)
+    except yaml.YAMLError as exc:
+        print("Error parsing CertificateInjector input", file=sys.stderr)
+        sys.exit(1)
+
+yaml.SafeDumper.org_represent_str = yaml.SafeDumper.represent_str
+
+def repr_str(dmp, data):
+    if '\n' in data:
+        return dmp.represent_scalar(u'tag:yaml.org,2002:str', data, style='|')
+    return dmp.org_represent_str(data)
+
+yaml.add_representer(str, repr_str, Dumper=yaml.SafeDumper)
+
+match_list = [
+    "DaemonSet",
+    "Deployment",
+    "StatefulSet",
+    "ReplicaSet",
+    "CronJob",
+    "Job",
+    "Pod",
+]
+
+
+def inject(doc, cfg):
+    spec = None
+    if doc["kind"] == "CronJob":
+        spec = doc["spec"]["jobTemplate"]["spec"]["template"]["spec"]
+    if doc["kind"] == "Pod":
+        spec = doc["spec"]
+    if (
+        doc["kind"] == "Deployment"
+        or doc["kind"] == "StatefulSet"
+        or doc["kind"] == "DaemonSet"
+        or doc["kind"] == "ReplicaSet"
+        or doc["kind"] == "Job"
+    ):
+        spec = doc["spec"]["template"]["spec"]
+    if not "volumes" in spec:
+        spec["volumes"] = []
+    spec["volumes"].append(
+        {
+            'name': "cert-inject",
+            "configMap": {"name": cfg["inject"]["configMap"]},
+        }
+    )
+    for c in spec["containers"]:
+        if not "volumeMounts" in c:
+            c["volumeMounts"] = []
+        for cert in cfg["inject"]["certs"]:
+            c['volumeMounts'].append(
+                {
+                    'name': "cert-inject",
+                    "mountPath": cfg["inject"]["dir"],
+                    "subPath": cert,
+                }
+            )
+    return doc
+
+
+def match(doc, cfg):
+    if doc["kind"] in match_list:
+        for target in cfg["inject"]["targets"]:
+            namespace = target.split(".")[0]
+            name = target.split(".")[1]
+            if (
+                "namespace" in doc["metadata"]
+                and namespace == doc["metadata"]["namespace"]
+            ):
+                if doc["metadata"]["name"] == name:
+                    return True
+    return False
+
+
+try:
+    if len(sys.argv) > 2:
+        f = open(sys.argv[2], "r")
+    else:
+        f = sys.stdin
+    for doc in yaml.safe_load_all(f):
+        if match(doc, cfg):
+            doc = inject(doc, cfg)
+        print("---")
+        print(yaml.safe_dump(doc, default_flow_style=False))
+except yaml.YAMLError as exc:
+    print("Error parsing YAML input\n\n%s\n\n" % exc, file=sys.stderr)
+    sys.exit(1)
