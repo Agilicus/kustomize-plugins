@@ -60,7 +60,7 @@ def inject(doc, cfg):
                 {
                     'name': "cert-inject",
                     "mountPath": cfg["inject"]["dir"],
-                    "subPath": cert,
+                    "subPath": cert
                 }
             )
     return doc

@@ -11,7 +11,7 @@ metadata:
 inject:
   configMap: cert-inject
   certs:
-    - fakelerootx1.pem:
+    - fakelerootx1.pem
   dir: /etc/ssl/certs
   targets:
     - ns.name
