@@ -1,6 +1,7 @@
 #!/usr/bin/env /usr/bin/python3
 
 import sys
+import os
 import yaml
 
 with open(sys.argv[1], "r") as stream:
@@ -59,7 +60,7 @@ def inject(doc, cfg):
             c['volumeMounts'].append(
                 {
                     'name': "cert-inject",
-                    "mountPath": cfg["inject"]["dir"],
+                    "mountPath": os.path.join(cfg["inject"]["dir"], cert),
                     "subPath": cert
                 }
             )
