@@ -1,0 +1,9 @@
+---
+apiVersion: agilicus/v1
+kind: SecretMerge
+metadata:
+  name: secret-.*
+  namespace: x1
+type: Secret
+secret:
+  - secret

@@ -1,0 +1,7 @@
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: secret-dgh86g5d7d
+  namespace: x1
+type: Opaque
