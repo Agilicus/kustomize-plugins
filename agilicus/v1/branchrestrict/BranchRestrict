@@ -4,6 +4,7 @@ import subprocess
 import sys
 import fnmatch
 import yaml
+import os
 
 # if remote_update is True, we do a `git remote update` and then
 # check `git status -uno --porcelain` is clean (empty)
@@ -17,18 +18,27 @@ with open(sys.argv[1], "r") as stream:
         )
         sys.exit(1)
 
-if "remote_update" in data and data["remote_update"]:
-    subprocess.check_output(["/usr/bin/git", "remote", "update"])
+
+def check_update(dir):
+    print(f"Check dir {dir}")
+    subprocess.check_output(["/usr/bin/git", "-C", dir, "remote", "update"])
     files = (
         subprocess.check_output(
-            ["/usr/bin/git", "status", "-uno", "--porcelain"]
+            ["/usr/bin/git", "-C", dir, "status", "-uno", "--porcelain"]
         )
         .strip()
         .decode("ascii")
     )
     if len(files):
-        print(f"Error: some files not committed.\n{files}", file=sys.stderr)
+        print(f"Error: some files in repo {dir} not committed.\n{files}", file=sys.stderr)
         sys.exit(1)
+
+
+if "remote_update" in data and data["remote_update"]:
+    check_update('.')
+    # Now check ourself!
+    check_update(os.path.dirname(os.path.abspath(__file__)))
+
 
 branch = (
     subprocess.check_output(
