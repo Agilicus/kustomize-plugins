@@ -20,7 +20,6 @@ with open(sys.argv[1], "r") as stream:
 
 
 def check_update(dir):
-    print(f"Check dir {dir}")
     subprocess.check_output(["/usr/bin/git", "-C", dir, "remote", "update"])
     files = (
         subprocess.check_output(
