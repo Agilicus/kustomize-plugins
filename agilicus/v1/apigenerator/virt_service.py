@@ -30,5 +30,6 @@ spec:
         allowCredentials: true
         allowHeaders:
           - X-Request-ID
+          - authorization
         maxAge: "24h"
 """
