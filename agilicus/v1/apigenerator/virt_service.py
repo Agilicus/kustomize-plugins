@@ -31,5 +31,6 @@ spec:
         allowHeaders:
           - X-Request-ID
           - authorization
+          - content-type
         maxAge: "24h"
 """
