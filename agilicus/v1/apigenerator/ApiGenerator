@@ -93,18 +93,33 @@ secret = yaml.load(secret.format(cfg=cfg))
 deployment = yaml.load(deployment.format(cfg=cfg))
 virt_service = yaml.load(virt_service.format(cfg=cfg))
 service = yaml.load(service.format(cfg=cfg))
+first_prefix = None
 for version in cfg['versions']:
     if version == "all":
+        if first_prefix is None:
+            first_prefix = f"/{cfg['name']}"
         match = { 'uri' : { 'prefix': f"/{cfg['name']}" } }
     else:
         if re.match("^v[0-9]", version):
             if '/' in version:
+                if first_prefix is None:
+                    first_prefix = f"/{version}"
                 match = { 'uri' : { 'prefix': f"/{version}" } }
             else:
+                if first_prefix is None:
+                    first_prefix = f"/{version}/{cfg['name']}"
                 match = { 'uri' : { 'prefix': f"/{version}/{cfg['name']}" } }
         else:
+            if first_prefix is None:
+                first_prefix = f"/{version}"
             match = { 'uri' : { 'prefix': f"/{version}" } }
     virt_service['spec']['http'][0]['match'].append( match )
+
+match = { 'match': [{ 'uri': { 'prefix': f"{first_prefix}/healthz" }}],
+          'rewrite': { 'uri': '/healthz' },
+          'route': [{ 'destination': { 'host': f"{cfg['name_version']}-{cfg['name']}.api.svc.cluster.local",
+              'port': { 'number': cfg['port'] }} } ]}
+virt_service['spec']['http'].insert(0, match )
 
 cfg['env'].append({ 'name': "API_ROOT", 'value': "api.__ROOT_DOMAIN__" })
 deployment['spec']['template']['spec']['containers'][0]['env'] = cfg['env']
