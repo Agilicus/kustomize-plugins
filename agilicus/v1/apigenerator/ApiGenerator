@@ -16,6 +16,20 @@ from service import service
 from database import database
 from secret import secret
 
+API_CONTAINER_INDEX = 0
+
+
+def add_mount(vars, prefix):
+    for mounts in vars:
+        name = prefix + mounts['name']
+        volumeMount_name = mounts['name']
+        path = mounts['path']
+        deployment['spec']['template']['spec']['containers'][API_CONTAINER_INDEX]['volumeMounts'].append({ 'mountPath': path, 'name': name })
+        if prefix == "s-":
+            deployment['spec']['template']['spec']['volumes'].append({ 'name': name, 'secret': { 'secretName': volumeMount_name } })
+        elif prefix == "c-":
+            deployment['spec']['template']['spec']['volumes'].append({ 'name': name, 'configMap': { 'name': volumeMount_name } })
+
 with open(sys.argv[1], 'r') as stream:
     try:
         cfg = yaml.safe_load(stream)
@@ -122,7 +136,13 @@ match = { 'match': [{ 'uri': { 'prefix': f"{first_prefix}/healthz" }}],
 virt_service['spec']['http'].insert(0, match )
 
 cfg['env'].append({ 'name': "API_ROOT", 'value': "api.__ROOT_DOMAIN__" })
-deployment['spec']['template']['spec']['containers'][0]['env'] = cfg['env']
+deployment['spec']['template']['spec']['containers'][API_CONTAINER_INDEX]['env'] = cfg['env']
+
+if "mounts" in cfg:
+    if "secrets" in cfg['mounts']:
+        add_mount(cfg['mounts']['secrets'], "s-")
+    if "configMap" in cfg['mounts']:
+        add_mount(cfg['mounts']['configMap'], "c-")
 
 print("---")
 print(yaml.dump(deployment, default_flow_style=False))

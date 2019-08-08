@@ -1,6 +1,6 @@
 ## ApiGenerator
 
-Given an input file like below, create a Deployment, Service, VirtualService, and Database CRD.
+Given an input file like below, create a Deployment, Service, VirtualService, Database CRD, and Mounts.
 
 ```
 ---
@@ -27,6 +27,13 @@ db:
   name: applications
   user: applications
   password: ${sops:dbpass}
+mounts:
+  secrets:
+    - name: cert-name
+      path: /cert/path/
+  configMap:
+    - name: configmap-name
+      path: /map/path
 
 ```
 
@@ -39,6 +46,9 @@ of the Deployment/Service/VirtualService
 fully specify all of the endpoints. Use this if your API container is > 1 API
 endpoint (e.g. if you have a container that is /v1/foo, /v1/bar, /v2/foo, you
 must specify all those).
+
+-To add a secret or configmap, you can specify the path it should be mounted 
+on its name
 
 So, as an example:
 
@@ -68,5 +78,13 @@ db:
   name: applications
   user: applications
   password: ${sops:dbpass}
+mounts:
+  secrets:
+    - name: ca-cert
+      path: /etc/ssl/certs
+  configMap:
+    - name: config-app
+      path: /etc/config
+
 
 ```

@@ -21,4 +21,11 @@ db:
   name: applications
   user: applications
   password: ${sops:dbpass}
+mounts:
+  secrets:
+    - name: cert-name
+      path: /cert/path/
+  configMap:
+    - name: configmap-name
+      path: /map/path
 
