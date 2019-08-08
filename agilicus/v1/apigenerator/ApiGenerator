@@ -15,6 +15,7 @@ from virt_service import virt_service
 from service import service
 from database import database
 from secret import secret
+from service_monitor import service_monitor
 
 API_CONTAINER_INDEX = 0
 
@@ -103,10 +104,10 @@ else:
     secrets = []
     cfg['hash'] = 'none'
 
-secret = yaml.load(secret.format(cfg=cfg))
-deployment = yaml.load(deployment.format(cfg=cfg))
-virt_service = yaml.load(virt_service.format(cfg=cfg))
-service = yaml.load(service.format(cfg=cfg))
+secret = yaml.safe_load(secret.format(cfg=cfg))
+deployment = yaml.safe_load(deployment.format(cfg=cfg))
+virt_service = yaml.safe_load(virt_service.format(cfg=cfg))
+service = yaml.safe_load(service.format(cfg=cfg))
 first_prefix = None
 for version in cfg['versions']:
     if version == "all":
@@ -154,10 +155,14 @@ print("---")
 print(yaml.dump(service, default_flow_style=False))
 
 if "db" in cfg:
-    database = yaml.load(database.format(cfg=cfg))
+    database = yaml.safe_load(database.format(cfg=cfg))
     print("---")
     print(yaml.dump(database, default_flow_style=False))
 
+if 'monitor' in cfg:
+    service_monitor = yaml.safe_load(service_monitor.format(cfg=cfg))
+    print("---")
+    print(yaml.dump(service_monitor, default_flow_style=False))
 
 secret['stringData'] = secrets
 
