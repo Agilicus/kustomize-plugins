@@ -13,7 +13,7 @@ spec:
         matchLabels:
             monitoring: prometheus
     endpoints:
-        - port: {cfg[monitor][port]}
+        - port: {cfg[port]}
           path: {cfg[monitor][path]}
           scheme: {cfg[monitor][scheme]}
           interval: {cfg[monitor][interval]}

@@ -29,7 +29,6 @@ mounts:
     - name: configmap-name
       path: /map/path
 monitor:
-  port: metrics
   path: /metrics
   scheme: http
   interval: 5s
