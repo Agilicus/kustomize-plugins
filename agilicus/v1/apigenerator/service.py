@@ -6,7 +6,7 @@ metadata:
   name: {cfg[name_version]}-{cfg[name]}
   namespace: {cfg[metadata][namespace]}
   labels:
-    monitoring: prometheus
+    monitoring: {cfg[name_version]}-{cfg[name]}
 spec:
   ports:
     - name: http
