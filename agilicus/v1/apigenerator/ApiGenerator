@@ -16,6 +16,7 @@ from service import service
 from database import database
 from secret import secret
 from service_monitor import service_monitor
+from alerting_rules import alerting_rules
 
 API_CONTAINER_INDEX = 0
 
@@ -163,6 +164,9 @@ if 'monitor' in cfg:
     service_monitor = yaml.safe_load(service_monitor.format(cfg=cfg))
     print("---")
     print(yaml.dump(service_monitor, default_flow_style=False))
+    alerting_rules = yaml.safe_load(alerting_rules.format(cfg=cfg))
+    print("---")
+    print(yaml.dump(alerting_rules, default_flow_style=False))
 
 secret['stringData'] = secrets
 
