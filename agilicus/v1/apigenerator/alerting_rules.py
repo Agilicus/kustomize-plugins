@@ -41,7 +41,7 @@ spec:
           annotations:
             summary: "API Service {cfg[name_version]}-{cfg[name]} experiencing 403 errors"
         - alert: {cfg[name_version]}-{cfg[name]} not meeting response time SLA
-          expr: 'sum(rate(flask_http_request_duration_seconds_bucket{{le="0.5",job="{cfg[name_version]}-{cfg[name]}",path!="/healthz"}}[5m])) / sum(rate(flask_http_request_duration_seconds_count{{job="{cfg[name_version]}-{cfg[name]}",path!="/healthz"}}[5m])) < 0.95'
+          expr: '0 < sum(rate(flask_http_request_duration_seconds_bucket{{le="0.5",job="{cfg[name_version]}-{cfg[name]}",path!="/healthz"}}[5m])) / sum(rate(flask_http_request_duration_seconds_count{{job="{cfg[name_version]}-{cfg[name]}",path!="/healthz"}}[5m])) < 0.95'
           for: 5m
           labels:
             severity: warning
