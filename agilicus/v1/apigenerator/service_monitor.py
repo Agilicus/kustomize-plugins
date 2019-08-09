@@ -11,7 +11,7 @@ metadata:
 spec:
     selector:
         matchLabels:
-            monitoring: prometheus
+            monitoring: {cfg[name_version]}-{cfg[name]}
     endpoints:
         - port: http
           path: {cfg[monitor][path]}
