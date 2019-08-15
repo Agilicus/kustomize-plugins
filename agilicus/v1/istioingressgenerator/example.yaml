@@ -6,6 +6,7 @@ metadata:
 name: alertmanager
 hostname: alertmanager.__ROOT_DOMAIN__
 issuer: letsencrypt-istio
+cookie_hash: true
 match_routes:
   http:
     - match:
@@ -16,4 +17,12 @@ match_routes:
             host: alertmanager-main
             port:
               number: 9093
-
+#destination:
+#  tls:
+#    mode: SIMPLE
+#    sni: foobar
+#  loadBalancer:
+#    consistentHash:
+#      httpCookie:
+#        name: agilicus-lb
+#        ttl: 0s
