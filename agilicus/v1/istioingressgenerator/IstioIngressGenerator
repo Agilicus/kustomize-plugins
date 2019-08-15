@@ -5,20 +5,30 @@ import textwrap
 from itertools import tee
 import yaml
 import hashlib
+from collections import defaultdict
+import json
+
 
 def chash(w):
-    h = hashlib.sha256(w.encode('utf-8'))
+    h = hashlib.sha256(w.encode("utf-8"))
     return h.hexdigest()[:4]
 
-with open(sys.argv[1], 'r') as stream:
+
+with open(sys.argv[1], "r") as stream:
     try:
-        data = yaml.safe_load(stream)
+        rd = lambda: defaultdict(rd)
+        data = rd()
+        data.update(yaml.safe_load(stream))
     except yaml.YAMLError as exc:
-        print("Error parsing IstioIngressGenerator generator input (%s)", file=sys.stderr)
+        print(
+            "Error parsing IstioIngressGenerator generator input (%s)",
+            file=sys.stderr,
+        )
         sys.exit(1)
 
-if not 'namespace' in data['metadata']:
-    data['metadata']['namespace'] = 'default'
+if not "namespace" in data["metadata"]:
+    data["metadata"]["namespace"] = "default"
+
 
 def gen(data, name, namespace, hostname, match_routes, issuer):
     uhash_name = f"{data['name']}-{data['metadata']['namespace']}"
@@ -87,13 +97,53 @@ spec:
 
     print(cert)
     print(vs)
-    print(textwrap.indent(yaml.dump(data['match_routes'], indent=2), 2 * ' '))
+    print(textwrap.indent(yaml.dump(data["match_routes"], indent=2), 2 * " "))
     print(gw)
-    
+    if "cookie_hash" in data and data["cookie_hash"]:
+        data["destination"]["loadBalancer"]["consistentHash"]["httpCookie"][
+            "name"
+        ] = "agilicus-lb"
+        data["destination"]["loadBalancer"]["consistentHash"]["httpCookie"][
+            "ttl"
+        ] = "0s"
+    if "destination" in data:
+        host = data['match_routes']['http'][0]['route'][0]['destination']['host']
+        port = data["match_routes"]["http"][0]["route"][0]["destination"][
+            "port"
+        ]["number"]
+        dr = f"""
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: {data['name']}-{data['metadata']['namespace']}-dr
+  namespace: {data['metadata']['namespace']}
+spec:
+  host: {host}
+"""
+        dr = yaml.safe_load(dr)
+        if "tls" in data["destination"]:
+            if 'trafficPolicy' not in dr['spec']:
+                dr["spec"]["trafficPolicy"] = {}
+            dr["spec"]["trafficPolicy"]["portLevelSettings"][0]["tls"] = data[
+                "destination"
+            ]["tls"]
+            dr["spec"]["trafficPolicy"]["portLevelSettings"][0]["port"]["number"] = port
+        if "loadBalancer" in data["destination"]:
+            if 'trafficPolicy' not in dr['spec']:
+                dr["spec"]["trafficPolicy"] = {}
+            dr["spec"]["trafficPolicy"]["loadBalancer"] = data["destination"][
+                "loadBalancer"
+            ]
+        # See https://github.com/yaml/pyyaml/pull/129 for why the copy
+        dr = json.loads(json.dumps(dr))
+        print("---")
+        print( yaml.dump(dr, indent=2, default_flow_style=False))
 
-gen(data,
-    data['name'],
-    data['metadata']['namespace'],
-    data['hostname'],
-    data['match_routes'],
-    data['issuer'])
+gen(
+    data,
+    data["name"],
+    data["metadata"]["namespace"],
+    data["hostname"],
+    data["match_routes"],
+    data["issuer"],
+)
