@@ -1,0 +1,180 @@
+#!/usr/bin/env /usr/bin/python3
+
+import copy
+import os
+import pathlib
+import subprocess
+import sys
+import yaml
+import zlib
+
+from configmap_template import config_map_base
+from deployment import deployment
+from ingress import ingress
+from service import service
+from backend_service import backend_service
+import backend_redirect
+from envoy import envoy_cfg
+from rbac import rbac
+from xinetd import xinetd_cfg
+
+
+# The v1 and agilicus should probably be inferred from the kind.
+HOME = pathlib.Path.home()
+API_PATH = os.path.join(HOME, ".config", "kustomize", "plugin", "agilicus", "v1")
+
+
+def expect_in(doc: dict, items: set, path: str):
+    doc_keys = doc.keys()
+    missing = items.difference(doc_keys)
+    if not missing:
+        return
+
+    print(f"Error parsing ProxyIntoVpnGenerator input. Missing keys: "
+          f"{str(missing)} from {path}",
+          file=sys.stderr)
+    sys.exit(1)
+
+
+def parse_doc(doc: dict):
+    expect_in(doc, {"metadata", "spec"}, ".")
+    return (doc["metadata"], doc["spec"])
+
+
+def add_inferred_config(cfg: dict):
+    cfg["cluster_name"] = f"http-ws-{cfg['name']}"
+
+
+def gen_hash(to_hash: str):
+    hash_v = zlib.adler32(bytes(to_hash, 'utf-8'))
+    return int(hash_v / 10000000) + int(hash_v % 10000000)
+
+
+def build_configmap(name: str, filename: str, contents: str, cfg: dict):
+    configmap = copy.deepcopy(config_map_base)
+    configmap["metadata"]["name"] = name
+    configmap["data"][filename] = contents
+    return configmap
+
+
+def gen_ingress(ingress_contents: str):
+    ingress_gen = os.path.join(API_PATH, "istioingressgenerator",
+                               "IstioIngressGenerator")
+    ingress_gen = os.path.realpath(ingress_gen)
+    result = subprocess.run([ingress_gen, "/dev/stdin"],
+                            input=ingress_contents,
+                            universal_newlines=True,
+                            stdout = subprocess.PIPE,
+                            stderr = subprocess.PIPE)
+    if result.returncode != 0:
+        print("Error generating IstioIngressGeneration (%s)" % result.stderr,
+              file=sys.stderr)
+        sys.exit(1)
+    return result.stdout
+
+
+def find_filter(filter_list, name):
+    for filter in filter_list["filters"]:
+        if filter["name"] == name:
+            return filter
+    return None
+
+
+def add_direct_responses(envoy_cfg: dict, cfg: dict):
+    # The first listener should be the one we care about
+    listener = envoy_cfg["static_resources"]["listeners"][0]
+
+    http_filter = find_filter(listener["filter_chains"][0],
+                              "envoy.http_connection_manager")
+    vhost = http_filter["config"]["route_config"]["virtual_hosts"][0]
+    for response in cfg["direct_responses"]:
+        direct_route = {
+            "match": {
+                "path": response["exact_path"]
+            },
+            "direct_response": {
+                "status": 200,
+                "body": {
+                    "inline_string": response["inline_body"]
+                }
+            }
+        }
+
+        vhost["routes"].insert(0, direct_route)
+
+
+with open(sys.argv[1], 'r') as stream:
+    try:
+        doc = yaml.safe_load(stream)
+    except yaml.YAMLError as exc:
+        print("Error parsing ProxyIntoVpnGenerator input (%s)", file=sys.stderr)
+        sys.exit(1)
+
+
+metadata, spec = parse_doc(doc)
+expect_in(metadata, {"name"}, ".metadata")
+expect_in(spec, {"downstream_base_host", "upstream", "prefix", "tokens_secret",
+                 "org_id"}, ".spec")
+
+cfg = dict()
+cfg["name"] = metadata["name"]
+cfg["namespace"] = metadata.get("namespace", "default")
+cfg["downstream_base_host"] = spec["downstream_base_host"]
+cfg["upstream"] = dict()
+upstream_host = spec["upstream"]["host"]
+cfg["upstream"]["host"] = upstream_host
+cfg["upstream"]["connect_host"] = spec["upstream"].get("connect_host", upstream_host)
+
+cfg["prefix"] = spec["prefix"]
+cfg["org_id"] = spec["org_id"]
+cfg["tokens_secret"] = spec["tokens_secret"]
+if "direct_responses" in spec:
+    cfg["direct_responses"] = spec["direct_responses"]
+
+add_inferred_config(cfg)
+
+# We do a first pass over the things that will build configmaps so that we can
+# build their hashes and refer to them elsewhere.
+envoy_obj = yaml.safe_load(envoy_cfg.format(cfg=cfg))
+add_direct_responses(envoy_obj, cfg)
+rendered_envoy = yaml.dump(envoy_obj)
+rendered_xinetd = xinetd_cfg.format(cfg=cfg)
+
+cfg["envoy_hash"] = gen_hash(rendered_envoy)
+cfg["envoy_config_name"] = f"http-ws-{cfg['name']}-envoy-config-{cfg['envoy_hash']}"
+cfg["xinetd_hash"] = gen_hash(rendered_xinetd)
+cfg["xinetd_config_name"] = f"http-ws-{cfg['name']}-tcp-to-ws-services-{cfg['xinetd_hash']}"
+
+backend_service_entry_obj = yaml.safe_load(
+    backend_redirect.service_entry.format(cfg=cfg))
+backend_virtual_service_obj = yaml.safe_load(
+    backend_redirect.virtual_service.format(cfg=cfg))
+backend_service_obj = yaml.safe_load(backend_service.format(cfg=cfg))
+deployment_obj = yaml.safe_load(deployment.format(cfg=cfg))
+rbac_obj = yaml.safe_load(rbac.format(cfg=cfg))
+service_obj = yaml.safe_load(service.format(cfg=cfg))
+envoy_configmap = build_configmap(cfg["envoy_config_name"], "envoy.yaml",
+                                  rendered_envoy, cfg)
+xinetd_configmap = build_configmap(cfg["xinetd_config_name"], "http-ws-xinetd",
+                                   rendered_xinetd, cfg)
+
+rendered_ingress = gen_ingress(ingress.format(cfg=cfg))
+
+print("---")
+print(yaml.dump(deployment_obj, default_flow_style=False))
+print("---")
+print(yaml.dump(backend_virtual_service_obj, default_flow_style=False))
+print("---")
+print(yaml.dump(backend_service_entry_obj, default_flow_style=False))
+print("---")
+print(yaml.dump(backend_service_obj, default_flow_style=False))
+print("---")
+print(yaml.dump(service_obj, default_flow_style=False))
+print("---")
+print(yaml.dump(rbac_obj, default_flow_style=False))
+print("---")
+print(yaml.dump(envoy_configmap, default_flow_style=False))
+print("---")
+print(yaml.dump(xinetd_configmap, default_flow_style=False))
+print("---")
+print(rendered_ingress)
