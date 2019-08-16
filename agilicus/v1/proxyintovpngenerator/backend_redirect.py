@@ -30,5 +30,5 @@ spec:
       -  {cfg[upstream][host]}
     route:
     - destination:
-        host:  {cfg[name]}
+        host:  {cfg[name]}-backend
 """
