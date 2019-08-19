@@ -1,0 +1,9 @@
+---
+apiVersion: agilicus/v1
+kind: GrafanaDashboardGenerator
+metadata:
+  name: istio-dashboards
+  namespace: api
+dashboards:
+  - foo.json
+  - bar.json

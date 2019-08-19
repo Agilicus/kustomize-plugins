@@ -1,0 +1,33 @@
+#!/usr/bin/env /usr/bin/python3
+
+import sys
+import yaml
+import os
+import textwrap
+
+cmap = """
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    grafana_dashboard: "true"
+  name: {cfg[metadata][name]}-{dashboard_name}
+  namespace: {cfg[metadata][namespace]}
+data:
+  {dashboard}: |"""
+
+with open(sys.argv[1], 'r') as stream:
+    try:
+        cfg = yaml.safe_load(stream)
+    except yaml.YAMLError as exc:
+        print("Error parsing GrafanaDashboardGenerator input (%s)", file=sys.stderr)
+        sys.exit(1)
+
+for dashboard in cfg['dashboards']:
+    dashboard_name = dashboard.split('.')[0]
+    content = open(dashboard, 'r').read()
+    # import pdb;pdb.set_trace()
+    x = cmap.format(cfg=cfg,dashboard_name=dashboard_name,dashboard=dashboard)
+    print(x)
+    print(textwrap.indent(content, 4 * " "))
