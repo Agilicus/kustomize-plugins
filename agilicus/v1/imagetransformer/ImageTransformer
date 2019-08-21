@@ -21,9 +21,12 @@ for image in data["images"]:
         new_name = image["new_name"]
     if "tag" in image:
         tag = image["tag"]
-    images[image["name"]] = {"tag": tag, "new_name": new_name}
+    img_obj = {"tag": tag, "new_name": new_name}
     if "labels" in image:
-        images[image["name"]]["labels"] = image["labels"]
+        img_obj["labels"] = image["labels"]
+    if image["name"] not in images:
+        images[image["name"]] = []
+    images[image["name"]].append(img_obj)
 
 
 match_list = [
@@ -73,14 +76,16 @@ def set_tag(obj, images):
         sys.exit(1)
     for container in spec["containers"]:
         image = container["image"].split(":")[0]
-        if image in images and label_match(images[image], obj):
-            new_name = image
-            if images[image]["new_name"]:
-                new_name = images[image]["new_name"]
-            if images[image]["tag"]:
-                container["image"] = new_name + ":" + images[image]["tag"]
-            else:
-                container["image"] = new_name
+        if image in images:
+            for target in images[image]:
+                if label_match(target, obj):
+                    new_name = image
+                    if target["new_name"]:
+                        new_name = target["new_name"]
+                    if target["tag"]:
+                        container["image"] = new_name + ":" + target["tag"]
+                    else:
+                        container["image"] = new_name
     print("---")
     print(yaml.dump(obj, default_flow_style=False))
 
