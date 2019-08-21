@@ -35,3 +35,17 @@ spec:
 ```
 
 it would result in an image tag of bar1:v1.
+
+You may match *some* images via a label:
+```
+---
+apiVersion: agilicus/v1
+kind: ImageTransformer
+metadata:
+  name: not-used-it
+images:
+  - name: nginx
+    tag: 1.16.0
+    labels:
+      app: nginx
+```

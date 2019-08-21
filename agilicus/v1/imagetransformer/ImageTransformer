@@ -14,14 +14,17 @@ with open(sys.argv[1], "r") as stream:
 # input yaml since there is a '/' in the key
 images = {}
 rename_images = {}
-for image in data['images']:
+for image in data["images"]:
     new_name = None
     tag = None
-    if 'new_name' in image:
-        new_name = image['new_name']
-    if 'tag' in image:
-        tag = image['tag']
-    images[image['name']] = { "tag": tag, "new_name": new_name }
+    if "new_name" in image:
+        new_name = image["new_name"]
+    if "tag" in image:
+        tag = image["tag"]
+    images[image["name"]] = {"tag": tag, "new_name": new_name}
+    if "labels" in image:
+        images[image["name"]]["labels"] = image["labels"]
+
 
 match_list = [
     "DaemonSet",
@@ -30,8 +33,23 @@ match_list = [
     "ReplicaSet",
     "CronJob",
     "Job",
-    "Pod"
+    "Pod",
 ]
+
+
+def label_match(img, doc):
+    # If no label is specified in pattern, match all
+    if "labels" not in img:
+        return True
+
+    for label in img["labels"]:
+        if (
+            label not in doc["metadata"]["labels"]
+            or img["labels"][label] != doc["metadata"]["labels"][label]
+        ):
+            return False
+    return True
+
 
 def set_tag(obj, images):
     spec = None
@@ -53,22 +71,23 @@ def set_tag(obj, images):
     if "containers" not in spec:
         print(f"Error: no containers found in obj {obj}", file=sys.stderr)
         sys.exit(1)
-    for container in spec['containers']:
-        image = container['image'].split(':')[0]
-        if image in images:
-            new_name = image;
-            if images[image]['new_name']:
-                new_name = images[image]['new_name']
-            if images[image]['tag']:
-                container['image'] = new_name + ':' + images[image]['tag']
+    for container in spec["containers"]:
+        image = container["image"].split(":")[0]
+        if image in images and label_match(images[image], obj):
+            new_name = image
+            if images[image]["new_name"]:
+                new_name = images[image]["new_name"]
+            if images[image]["tag"]:
+                container["image"] = new_name + ":" + images[image]["tag"]
             else:
-                container['image'] = new_name
+                container["image"] = new_name
     print("---")
     print(yaml.dump(obj, default_flow_style=False))
 
+
 try:
     if len(sys.argv) > 2:
-        f = open(sys.argv[2], 'r')
+        f = open(sys.argv[2], "r")
     else:
         f = sys.stdin
     for yaml_input in yaml.safe_load_all(f):
@@ -80,4 +99,3 @@ try:
 except yaml.YAMLError as exc:
     print("Error parsing YAML in ImageTransformer", file=sys.stderr)
     sys.exit(1)
-

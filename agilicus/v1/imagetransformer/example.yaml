@@ -4,6 +4,10 @@ kind: ImageTransformer
 metadata:
   name: not-used-it
 images:
+  - name: nginx
+    tag: 1.16.0
+    labels:
+      app: nginx
   - name: X
     new_name: bar1
     tag: Y
@@ -11,5 +15,3 @@ images:
     tag: v1
   - name: busybox
     new_name: alpine
-  - name: nginx
-    tag: 1.16.0
