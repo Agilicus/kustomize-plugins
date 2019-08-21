@@ -6,6 +6,9 @@ import fnmatch
 import yaml
 import os
 
+if "BRANCH_RESTICT_OVERRIDE" in os.environ:
+    sys.exit(0)
+
 # if remote_update is True, we do a `git remote update` and then
 # check `git status -uno --porcelain` is clean (empty)
 with open(sys.argv[1], "r") as stream:
