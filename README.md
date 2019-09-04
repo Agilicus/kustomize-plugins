@@ -5,6 +5,9 @@ Apache 2.0 license.
 
 Install: `cp -pr agilicus ~/.config/kustomize/plugin/`
 
+You will also need a newer version of pyyaml (5.1.2):
+`pip3 install -U --user pyyaml`
+
 (you can also install _live_, e.g. `ln -s $PWD/agilicus ~/.config/kustomize/plugin/`)
 
 More info on the [blog](https://www.agilicus.com/kustomize-plugin-examples/) post.
