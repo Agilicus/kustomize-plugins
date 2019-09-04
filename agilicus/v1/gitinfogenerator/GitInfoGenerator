@@ -27,7 +27,7 @@ metadata:
 data: {}
 """
 
-cfgmap = yaml.load(data)
+cfgmap = yaml.safe_load(data)
 cfgmap['data']["git-tag"] = git_sha
 cfgmap['data']["applied-on"] = datetime.datetime.utcnow().isoformat()
 cfgmap['data']["applied-by"] = pwd.getpwuid(os.getuid()).pw_name
