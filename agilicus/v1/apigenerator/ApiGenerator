@@ -15,6 +15,7 @@ import zlib
 
 from deployment import deployment
 from virt_service import virt_service
+from dest_rule import dest_rule
 from service import service
 from database import database
 from secret import secret
@@ -111,6 +112,7 @@ else:
 secret = yaml.safe_load(secret.format(cfg=cfg))
 deployment = yaml.safe_load(deployment.format(cfg=cfg))
 virt_service = yaml.safe_load(virt_service.format(cfg=cfg))
+dest_rule = yaml.safe_load(dest_rule.format(cfg=cfg))
 service = yaml.safe_load(service.format(cfg=cfg))
 first_prefix = None
 for version in cfg['versions']:
@@ -154,6 +156,9 @@ print(yaml.dump(deployment, default_flow_style=False))
 
 print("---")
 print(yaml.dump(virt_service, default_flow_style=False))
+
+print("---")
+print(yaml.dump(dest_rule, default_flow_style=False))
 
 print("---")
 print(yaml.dump(service, default_flow_style=False))
