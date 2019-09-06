@@ -14,7 +14,7 @@ spec:
     - match: []
       route:
         - destination:
-            host: {cfg[name_version]}-{cfg[name]}.api.svc.cluster.local
+            host: {cfg[name_version]}-{cfg[name]}.{cfg[metadata][namespace]}.svc.cluster.local
             port:
               number: {cfg[port]}
       corsPolicy:

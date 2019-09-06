@@ -6,7 +6,7 @@ metadata:
   name: {cfg[name_version]}-{cfg[name]}-api-dr
   namespace: {cfg[metadata][namespace]}
 spec:
-  host: {cfg[name_version]}-{cfg[name]}.api.svc.cluster.local
+  host: {cfg[name_version]}-{cfg[name]}.{cfg[metadata][namespace]}.svc.cluster.local
   trafficPolicy:
     outlierDetection:
       consecutiveErrors: 2
