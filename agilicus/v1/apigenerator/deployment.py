@@ -17,6 +17,13 @@ spec:
       annotations:
         fluentbit.io/parser: "json"
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  app: {cfg[name_version]}-{cfg[name]}
+              topologyKey: kubernetes.io/hostname
       imagePullSecrets:
         - name: regcred
       containers:
