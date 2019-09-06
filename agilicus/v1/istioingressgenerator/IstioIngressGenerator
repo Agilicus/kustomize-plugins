@@ -122,6 +122,12 @@ metadata:
   namespace: {data['metadata']['namespace']}
 spec:
   host: {host}
+  trafficPolicy:
+    outlierDetection:
+      consecutiveErrors: 2
+      interval: 5s
+      baseEjectionTime: 10m
+      maxEjectionPercent: 50
 """
         dr = yaml.safe_load(dr)
         if "tls" in data["destination"]:
