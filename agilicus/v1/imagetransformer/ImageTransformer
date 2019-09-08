@@ -86,7 +86,7 @@ def set_tag(obj, images):
                     if target["new_name"]:
                         new_name = target["new_name"]
                     if target["tag"]:
-                        container["image"] = new_name + ":" + target["tag"]
+                        container["image"] = new_name + ":" + str(target["tag"])
                     else:
                         container["image"] = new_name
     print("---")
