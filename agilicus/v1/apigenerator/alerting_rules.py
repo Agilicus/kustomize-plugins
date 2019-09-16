@@ -47,4 +47,20 @@ spec:
             severity: warning
           annotations:
             summary: "API {cfg[name_version]}-{cfg[name]} is not meeting the SLA requirement of 95% of all requests within 500ms"
+        - alert: {cfg[name_version]}-{cfg[name]}  api,db connection issue
+          expr: 'sum(rate(db_fail_total{{service = "{cfg[name_version]}-{cfg[name]}"}}[1m])) > 0 and  sum(rate(flask_http_request_total{{service="{cfg[name_version]}-{cfg[name]}",status=~"5.."}}[1m])) > 0'
+          for: 1m
+          labels:
+            severity: warning
+          annotations:
+            summary: "API service {cfg[name_version]}-{cfg[name]} api,db connection issue"
+        
+        - alert: {cfg[name_version]}-{cfg[name]} high api,db connection issue 
+          expr: 'sum(rate(db_fail_total{{service = "{cfg[name_version]}-{cfg[name]}"}}[1m])) > 0  and sum(rate(flask_http_request_total{{service="{cfg[name_version]}-{cfg[name]}",status=~"5.."}}[1m])) > 0'
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "API service {cfg[name_version]}-{cfg[name]} high api,db connection issue"
+        
 """
