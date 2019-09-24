@@ -60,3 +60,50 @@ Prevent users from applying a set of yaml when not on master
 
 Change all certificates to e.g. Let's Encrypt Staging
 
+## privateregistry
+
+Enable private registry in a namespace
+
+## grafanadashboardgenerator
+
+Add grafana dashboards from json
+
+## lockcontext
+
+Prevent operation on the wrong Kubernetes context.
+
+## secrettransformer
+
+Modify secrets inline w/ sops
+
+## secretmerge
+
+Merge secrets w/ more from sops
+
+## secretgenerator
+
+Create a secret from sops
+
+## crdgenerator
+
+Select only CRD from certain input files (for a 2-pass install using same source)
+
+## namespacetransformer
+
+Add namespaces
+
+## imagetransformer
+
+Image pins done simply.
+
+## gitinfogenerator
+
+Generate annotation of who applied what when, as a configmap
+
+## certificateinjector
+
+Add certificates
+
+## secretstringdatatransformer
+
+Convert base64 to string for later merging
