@@ -53,7 +53,7 @@ spec:
           labels:
             severity: warning
           annotations:
-            summary: "API service {cfg[name_version]}-{cfg[name]}  on cluster : {__CLUSTER__} because for about one minute, the db_fail_total counter has an increasing rate and the database is returning the responce code of 500"
+            summary: "API service {cfg[name_version]}-{cfg[name]}  on cluster : __CLUSTER__ because for about one minute, the db_fail_total counter has an increasing rate and the database is returning the responce code of 500"
         
         - alert: {cfg[name_version]}-{cfg[name]} high api,db connection issue 
           expr: 'sum(rate(db_fail_total{{service = "{cfg[name_version]}-{cfg[name]}"}}[1m])) > 0  and sum(rate(flask_http_request_total{{service="{cfg[name_version]}-{cfg[name]}",status=~"5.."}}[1m])) > 0'
@@ -61,6 +61,6 @@ spec:
           labels:
             severity: critical
           annotations:
-            summary: "API service {cfg[name_version]}-{cfg[name]} on cluster : {__CLUSTER__} because for about five minutes, the db_fail_total counter has an increasing rate and the database is returning the responce code of 500 "
+            summary: "API service {cfg[name_version]}-{cfg[name]} on cluster : __CLUSTER__ because for about five minutes, the db_fail_total counter has an increasing rate and the database is returning the responce code of 500 "
         
 """
