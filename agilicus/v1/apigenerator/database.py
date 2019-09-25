@@ -9,4 +9,6 @@ spec:
   dbname: {cfg[db][name]}
   user: {cfg[db][user]}
   password: {cfg[db][password]}
+  restore: true
+  restorefrom: now
 """
