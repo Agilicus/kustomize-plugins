@@ -61,7 +61,7 @@ spec:
               drop:
                 - all
           volumeMounts:
-            - mountPath: /var/tmp
+            - mountPath: /tmp
               name: tmpdir
       volumes:
         - name: tmpdir
