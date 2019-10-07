@@ -1,0 +1,15 @@
+---
+apiVersion: agilicus/v2
+kind: SecretGenerator
+metadata:
+  name: mysecret
+  namespace: default
+type: Secret
+# stringData|data
+secretType: data
+# filename of encoded file
+secret_source: secrets.enc.yaml
+# empty list implies all secrets in file
+secrets: []
+# secrets:
+#   - secret
