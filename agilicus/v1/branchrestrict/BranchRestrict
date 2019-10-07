@@ -44,6 +44,21 @@ def check_update(dir):
             )
             sys.exit(1)
 
+        files = (
+            subprocess.check_output(
+                ["/usr/bin/git", "-C", dir, "log", "-p", "HEAD..FETCH_HEAD"]
+            )
+            .strip()
+            .decode("ascii")
+        )
+        if len(files):
+            print(
+                f"Error: repo {dir} head does not match remote.\n{files}",
+                file=sys.stderr,
+            )
+            sys.exit(1)
+
+
 
 if "remote_update" in data and data["remote_update"]:
     check_update(".")
