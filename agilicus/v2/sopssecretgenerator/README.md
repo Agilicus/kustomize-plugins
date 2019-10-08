@@ -1,6 +1,15 @@
+## v2 SecretGenerator
+
+More in alignment with: https://github.com/Agilicus/kustomize-sops
+
+This is a general-purpose sops to Secret generator.
+
+Given an input like:
+
+```
 ---
 apiVersion: agilicus/v2
-kind: SecretGenerator
+kind: SopsSecretGenerator
 metadata:
   name: mysecret
   namespace: default
@@ -13,3 +22,7 @@ secret_source: secrets.enc.yaml
 secrets: []
 # secrets:
 #   - my_special_key
+
+```
+
+It will emit Secret with the required entry.

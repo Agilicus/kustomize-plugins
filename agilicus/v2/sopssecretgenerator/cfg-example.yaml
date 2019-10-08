@@ -1,6 +1,6 @@
 ---
 apiVersion: agilicus/v1
-kind: SecretGenerator
+kind: SopsSecretGenerator
 metadata:
   name: myconfig
   namespace: default
