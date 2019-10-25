@@ -67,6 +67,12 @@ def inject(doc, cfg):
                     "subPath": cert
                 }
             )
+        if "env" not in cfg["inject"]:
+            continue
+        if not "env" in c:
+            c["env"] = []
+        for env in cfg["inject"]["env"]:
+            c['env'].append(env)
     return doc
 
 

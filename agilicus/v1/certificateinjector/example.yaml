@@ -7,6 +7,9 @@ inject:
   configMap: cert-inject
   certs:
     - fakelerootx1.pem
+  env:
+    - name: REQUESTS_CA_BUNDLE
+      value: /etc/ssl/certs/fakelerootx1.pem
   dir: /etc/ssl/certs
   targets:
     - ns.name
