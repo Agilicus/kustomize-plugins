@@ -36,16 +36,17 @@ if not "namespace" in data["metadata"]:
     data["metadata"]["namespace"] = "default"
 
 
-def make_gateway(data, secret_name, allow_plaintext):
+def make_gateway(data, secret_name, plaintext_port):
     gw = yaml.safe_load(gateway.spec.format(data=data))
 
     https_server = yaml.safe_load(gateway.base_server.format(data=data,
                                                              secret_name=secret_name))
     gw["spec"]["servers"].append(https_server)
-    if allow_plaintext:
+    # We disallow the port being 443 since we have tls by default
+    if plaintext_port and plaintext_port != 443:
         http_server = copy.deepcopy(https_server)
         del http_server["tls"]
-        http_server["port"]["number"] = 80
+        http_server["port"]["number"] = plaintext_port
         http_server["port"]["protocol"] = "HTTP"
         http_server["port"]["name"] = "http-default"
         gw["spec"]["servers"].append(http_server)
@@ -57,7 +58,7 @@ def gen(data, name, namespace, hostname, match_routes, issuer):
     uhash_name = f"{data['name']}-{data['metadata']['namespace']}"
     hash_name = chash(uhash_name)
     secret_name = f"h{hash_name}-{data['name']}-{data['metadata']['namespace']}-certificate"
-    allow_plaintext = data.get("allow_plaintext", False)
+    plaintext_port = data.get("plaintext_port", None)
     cert = f"""
 ---
 apiVersion: certmanager.k8s.io/v1alpha1
@@ -93,7 +94,7 @@ spec:
     - istio-system/{data['name']}-{data['metadata']['namespace']}-gw
 """
 
-    gw = make_gateway(data, secret_name, allow_plaintext)
+    gw = make_gateway(data, secret_name, plaintext_port)
 
     print(cert)
     print(vs)
