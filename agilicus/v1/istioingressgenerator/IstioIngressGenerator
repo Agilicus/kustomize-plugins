@@ -3,6 +3,7 @@
 import pkg_resources
 pkg_resources.require('PyYAML>=5.1.1')
 
+import copy
 import sys
 import textwrap
 from itertools import tee
@@ -10,6 +11,8 @@ import yaml
 import hashlib
 from collections import defaultdict
 import json
+
+import gateway
 
 
 def chash(w):
@@ -33,10 +36,28 @@ if not "namespace" in data["metadata"]:
     data["metadata"]["namespace"] = "default"
 
 
+def make_gateway(data, secret_name, allow_plaintext):
+    gw = yaml.safe_load(gateway.spec.format(data=data))
+
+    https_server = yaml.safe_load(gateway.base_server.format(data=data,
+                                                             secret_name=secret_name))
+    gw["spec"]["servers"].append(https_server)
+    if allow_plaintext:
+        http_server = copy.deepcopy(https_server)
+        del http_server["tls"]
+        http_server["port"]["number"] = 80
+        http_server["port"]["protocol"] = "HTTP"
+        http_server["port"]["name"] = "http-default"
+        gw["spec"]["servers"].append(http_server)
+
+    return gw
+
+
 def gen(data, name, namespace, hostname, match_routes, issuer):
     uhash_name = f"{data['name']}-{data['metadata']['namespace']}"
     hash_name = chash(uhash_name)
     secret_name = f"h{hash_name}-{data['name']}-{data['metadata']['namespace']}-certificate"
+    allow_plaintext = data.get("allow_plaintext", False)
     cert = f"""
 ---
 apiVersion: certmanager.k8s.io/v1alpha1
@@ -72,36 +93,13 @@ spec:
     - istio-system/{data['name']}-{data['metadata']['namespace']}-gw
 """
 
-    gw = f"""
----
-apiVersion: networking.istio.io/v1alpha3
-kind: Gateway
-metadata:
-  name: {data['name']}-{data['metadata']['namespace']}-gw
-  namespace: istio-system
-  labels:
-    app: ingressgateway
-spec:
-  selector:
-    istio: ingressgateway
-  servers:
-    - port:
-        number: 443
-        protocol: HTTPS
-        name: https-default
-      tls:
-        mode: SIMPLE
-        serverCertificate: "sds"
-        privateKey: "sds"
-        credentialName: "{secret_name}"
-      hosts:
-        - {data['hostname']}
-"""
+    gw = make_gateway(data, secret_name, allow_plaintext)
 
     print(cert)
     print(vs)
     print(textwrap.indent(yaml.dump(data["match_routes"], indent=2), 2 * " "))
-    print(gw)
+    print ("---")
+    print(yaml.dump(gw))
     if "cookie_hash" in data and data["cookie_hash"]:
         data["destination"]["loadBalancer"]["consistentHash"]["httpCookie"][
             "name"
