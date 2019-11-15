@@ -22,6 +22,8 @@ from secret import secret
 from service_monitor import service_monitor
 from alerting_rules import alerting_rules
 
+import opa_sidecar
+
 API_CONTAINER_INDEX = 0
 
 
@@ -61,6 +63,15 @@ def find_file(f):
     except FileNotFoundError:
         return os.path.join(os.environ['PWD'], f)
 
+
+def build_hash(items):
+    hash_v = 0
+    for v in items:
+        hash_v = hash_v ^ zlib.adler32(bytes(v, 'utf-8'))
+    hash_v = int(hash_v / 10000000) + int(hash_v % 10000000)
+    return hash_v
+
+
 def sops_fetch(cfg, keys):
     sops = shutil.which(
         "sops", path="/bin:/usr/bin:/snap/bin:%s/go/bin" % os.path.expanduser("~")
@@ -96,12 +107,43 @@ def sops_fetch(cfg, keys):
             if key not in keys:
                 secrets.pop(key)
 
-    hash_v = 0
-    for k, v in secrets.items():
-        hash_v = hash_v ^ zlib.adler32(bytes(v, 'utf-8'))
-    hash_v = int(hash_v / 10000000) + int(hash_v % 10000000)
+    hash = build_hash(secrets.values())
+    return secrets, hash
 
-    return secrets, hash_v
+
+def print_yaml_str(str_to_dump):
+    print("---")
+    print(str_to_dump)
+
+def print_obj(obj_to_dump):
+    print_yaml_str(yaml.dump(obj_to_dump, default_flow_style=False))
+
+
+def add_policy_agent(cfg: dict, deployment: cfg):
+    container = yaml.safe_load(opa_sidecar.container.format(cfg=cfg))
+    init_container = yaml.safe_load(opa_sidecar.init_container.format(cfg=cfg))
+    volumes = yaml.safe_load(opa_sidecar.volumes.format(cfg=cfg))
+    config_str = opa_sidecar.config.format(cfg=cfg)
+    filter_str = opa_sidecar.envoy_filter.format(cfg=cfg)
+
+    # Just hash the whole thing. It's simple enough.
+    hash = build_hash([config_str])
+    config_obj = yaml.safe_load(config_str)
+    cfg_name = config_obj["metadata"]["name"]
+    cfg_name = f"{cfg_name}-{hash}"
+
+    config_obj["metadata"]["name"] =  cfg_name
+    volumes[0]["configMap"]["name"] = cfg_name
+    pod_spec = deployment["spec"]["template"]["spec"]
+
+    pod_spec["containers"].append(container)
+    init_containers = pod_spec.setdefault("initContainers", [])
+    init_containers.append(init_container)
+    pod_spec["volumes"].extend(volumes)
+
+    print_obj(config_obj)
+    print_yaml_str(filter_str)
+
 
 if 'secret' in cfg and len(cfg['secret']):
     secrets, cfg['hash'] = sops_fetch(cfg, cfg['secret'])
@@ -151,32 +193,25 @@ if "mounts" in cfg:
     if "configMap" in cfg['mounts']:
         add_mount(cfg['mounts']['configMap'], "c-")
 
-print("---")
-print(yaml.dump(deployment, default_flow_style=False))
+policy_agent_cfg = cfg.get("policy-agent", {})
+if policy_agent_cfg.get("enabled", False):
+    add_policy_agent(cfg, deployment)
 
-print("---")
-print(yaml.dump(virt_service, default_flow_style=False))
+print_obj(deployment)
+print_obj(virt_service)
+print_obj(dest_rule)
+print_obj(service)
 
-print("---")
-print(yaml.dump(dest_rule, default_flow_style=False))
-
-print("---")
-print(yaml.dump(service, default_flow_style=False))
 
 if "db" in cfg:
     database = yaml.safe_load(database.format(cfg=cfg))
-    print("---")
-    print(yaml.dump(database, default_flow_style=False))
+    print_obj(database)
 
 if 'monitor' in cfg:
     service_monitor = yaml.safe_load(service_monitor.format(cfg=cfg))
-    print("---")
-    print(yaml.dump(service_monitor, default_flow_style=False))
+    print_obj(service_monitor)
     alerting_rules = yaml.safe_load(alerting_rules.format(cfg=cfg))
-    print("---")
-    print(yaml.dump(alerting_rules, default_flow_style=False))
+    print_obj(alerting_rules)
 
 secret['stringData'] = secrets
-
-print("---")
-print(yaml.dump(secret, default_flow_style=False))
+print_obj(secret)
