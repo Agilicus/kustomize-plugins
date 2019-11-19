@@ -56,6 +56,19 @@ def label_match(img, doc):
             return False
     return True
 
+def update_container(obj, container, images):
+    image = container["image"].split(":")[0]
+    if image in images:
+        for target in images[image]:
+            if label_match(target, obj):
+                new_name = image
+                if target["new_name"]:
+                    new_name = target["new_name"]
+                if target["tag"]:
+                    container["image"] = new_name + ":" + str(target["tag"])
+                else:
+                    container["image"] = new_name
+
 
 def set_tag(obj, images):
     spec = None
@@ -77,18 +90,13 @@ def set_tag(obj, images):
     if "containers" not in spec:
         print(f"Error: no containers found in obj {obj}", file=sys.stderr)
         sys.exit(1)
+
     for container in spec["containers"]:
-        image = container["image"].split(":")[0]
-        if image in images:
-            for target in images[image]:
-                if label_match(target, obj):
-                    new_name = image
-                    if target["new_name"]:
-                        new_name = target["new_name"]
-                    if target["tag"]:
-                        container["image"] = new_name + ":" + str(target["tag"])
-                    else:
-                        container["image"] = new_name
+        update_container(obj, container, images)
+
+    for container in spec.get("initContainers", []):
+        update_container(obj, container, images)
+
     print("---")
     print(yaml.dump(obj, default_flow_style=False))
 
