@@ -88,3 +88,29 @@ mounts:
 
 
 ```
+## OPA Sidecar
+
+You can add an OPA Sidecar for authz by adding a policy-agent
+section to the generator with enabled set to true.
+
+E.g.
+
+```
+kind: ApiGenerator
+metadata:
+  name: not-used-api
+  namespace: api
+name: applications
+name_version: v1
+image: cr.agilicus.com/platform/applications
+port: 5006
+replicas: 2
+versions: 
+  - users
+  - v1/users
+policy-agent:
+  enabled: true
+```
+
+Note that this assumes the existence of an authz model in the working
+directory of the container. The model must be named `model.yaml`.
