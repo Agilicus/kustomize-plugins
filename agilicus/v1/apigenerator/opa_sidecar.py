@@ -134,7 +134,6 @@ spec:
       listenerMatch:
         listenerType: SIDECAR_INBOUND
         listenerProtocol: HTTP
-        portNumber: 5006
       filterType: HTTP
       filterName: "envoy.ext_authz"
       filterConfig:
