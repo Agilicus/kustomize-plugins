@@ -109,7 +109,7 @@ data:
           token_service_url: https://api.agilicus.com
   static_config.rego: |
     package static
-    aud="urn:api:agilicus:{cfg[name]}"
+    aud="urn:api:agilicus:{cfg[policy-agent][auth-name]}"
   secrets.rego: |
     package secrets
     cert = result {{
