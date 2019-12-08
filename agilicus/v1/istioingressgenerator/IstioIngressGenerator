@@ -101,6 +101,9 @@ spec:
                 m['headers']['response']['set'] = {}
             if 'Strict-Transport-Security' not in m['headers']['response']['set']:
                  m['headers']['response']['set']['Strict-Transport-Security'] = 'max-age=63072000; includeSubDomains'
+            # only add the default remove header if not present
+            if 'remove' not in m['headers']['response']:
+                m['headers']['response']['remove'] = ['x-envoy-upstream-service-time']
 
     print(cert)
     print ("---")
