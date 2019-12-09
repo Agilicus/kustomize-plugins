@@ -15,7 +15,11 @@ spec:
       headers:
         response:
           set:
-            Strict-Transport-Security: max-age=63072000; includeSubDomains
+            Strict-Transport-Security: "max-age=63072000; includeSubDomains"
+            X-Content-Type-Options: nosniff
+            X-Frame-Options: sameorigin
+            X-XSS-Protection: "1; mode=block"
+            Content-Security-Policy: "default-src 'none'; frame-ancestors 'self'; base-uri none; form-action none;"
           remove:
             - x-envoy-upstream-service-time
       route:
