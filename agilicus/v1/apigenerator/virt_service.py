@@ -21,6 +21,7 @@ spec:
             X-Frame-Options: sameorigin
             X-XSS-Protection: "1; mode=block"
             Content-Security-Policy: "default-src 'none'; frame-ancestors 'self'; base-uri none; form-action none;"
+            vary: origin
           remove:
             - x-envoy-upstream-service-time
       route:
