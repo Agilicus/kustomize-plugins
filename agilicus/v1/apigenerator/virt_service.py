@@ -12,6 +12,12 @@ spec:
     - istio-system/api-gw
   http:
     - match: []
+      headers:
+        response:
+          set:
+            Strict-Transport-Security: max-age=63072000; includeSubDomains
+          remove:
+            - x-envoy-upstream-service-time
       route:
         - destination:
             host: {cfg[name_version]}-{cfg[name]}.{cfg[metadata][namespace]}.svc.cluster.local
