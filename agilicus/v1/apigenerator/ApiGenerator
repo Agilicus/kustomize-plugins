@@ -1,7 +1,8 @@
 #!/usr/bin/env /usr/bin/python3
 
 import pkg_resources
-pkg_resources.require('PyYAML>=5.1.1')
+
+pkg_resources.require("PyYAML>=5.1.1")
 
 import sys
 import textwrap
@@ -29,27 +30,35 @@ API_CONTAINER_INDEX = 0
 
 def add_mount(vars, prefix):
     for mounts in vars:
-        name = prefix + mounts['name']
-        volumeMount_name = mounts['name']
-        path = mounts['path']
-        deployment['spec']['template']['spec']['containers'][API_CONTAINER_INDEX]['volumeMounts'].append({ 'mountPath': path, 'name': name })
+        name = prefix + mounts["name"]
+        volumeMount_name = mounts["name"]
+        path = mounts["path"]
+        deployment["spec"]["template"]["spec"]["containers"][API_CONTAINER_INDEX][
+            "volumeMounts"
+        ].append({"mountPath": path, "name": name})
         if prefix == "s-":
-            deployment['spec']['template']['spec']['volumes'].append({ 'name': name, 'secret': { 'secretName': volumeMount_name } })
+            deployment["spec"]["template"]["spec"]["volumes"].append(
+                {"name": name, "secret": {"secretName": volumeMount_name}}
+            )
         elif prefix == "c-":
-            deployment['spec']['template']['spec']['volumes'].append({ 'name': name, 'configMap': { 'name': volumeMount_name } })
+            deployment["spec"]["template"]["spec"]["volumes"].append(
+                {"name": name, "configMap": {"name": volumeMount_name}}
+            )
 
-with open(sys.argv[1], 'r') as stream:
+
+with open(sys.argv[1], "r") as stream:
     try:
         cfg = yaml.safe_load(stream)
     except yaml.YAMLError as exc:
         print("Error parsing ApiGenerator input (%s)", file=sys.stderr)
         sys.exit(1)
 
-if len(cfg['versions'][0]) == 0:
-    cfg['versions'][0] = 'all'
+if len(cfg["versions"][0]) == 0:
+    cfg["versions"][0] = "all"
 
-if 'name_version' not in cfg:
-    cfg['name_version'] = cfg['versions'][0].split('/')[0]
+if "name_version" not in cfg:
+    cfg["name_version"] = cfg["versions"][0].split("/")[0]
+
 
 def find_file(f):
     """ if file is in current dir, return it, else return it from the PWD.
@@ -61,13 +70,13 @@ def find_file(f):
         os.stat(f)
         return f
     except FileNotFoundError:
-        return os.path.join(os.environ['PWD'], f)
+        return os.path.join(os.environ["PWD"], f)
 
 
 def build_hash(items):
     hash_v = 0
     for v in items:
-        hash_v = hash_v ^ zlib.adler32(bytes(v, 'utf-8'))
+        hash_v = hash_v ^ zlib.adler32(bytes(v, "utf-8"))
     hash_v = int(hash_v / 10000000) + int(hash_v % 10000000)
     return hash_v
 
@@ -85,9 +94,7 @@ def sops_fetch(cfg, keys):
 
     sfile = find_file(cfg["secret_source"])
     try:
-        with subprocess.Popen(
-            [sops, "-d", sfile], stdout=subprocess.PIPE
-        ) as f:
+        with subprocess.Popen([sops, "-d", sfile], stdout=subprocess.PIPE) as f:
             secrets = yaml.safe_load(f.stdout)
     except subprocess.CalledProcessError as exc:
         print(
@@ -115,12 +122,13 @@ def print_yaml_str(str_to_dump):
     print("---")
     print(str_to_dump)
 
+
 def print_obj(obj_to_dump):
     print_yaml_str(yaml.dump(obj_to_dump, default_flow_style=False))
 
 
 def add_policy_agent(cfg: dict, deployment: cfg):
-    #cfg["auth_name"] = cfg.get("auth-name", cfg["name"])
+    # cfg["auth_name"] = cfg.get("auth-name", cfg["name"])
     if "auth-name" not in cfg["policy-agent"]:
         cfg["policy-agent"]["auth-name"] = cfg["name"]
 
@@ -136,7 +144,7 @@ def add_policy_agent(cfg: dict, deployment: cfg):
     cfg_name = config_obj["metadata"]["name"]
     cfg_name = f"{cfg_name}-{hash}"
 
-    config_obj["metadata"]["name"] =  cfg_name
+    config_obj["metadata"]["name"] = cfg_name
     volumes[0]["configMap"]["name"] = cfg_name
     pod_spec = deployment["spec"]["template"]["spec"]
 
@@ -149,11 +157,11 @@ def add_policy_agent(cfg: dict, deployment: cfg):
     print_yaml_str(filter_str)
 
 
-if 'secret' in cfg and len(cfg['secret']):
-    secrets, cfg['hash'] = sops_fetch(cfg, cfg['secret'])
+if "secret" in cfg and len(cfg["secret"]):
+    secrets, cfg["hash"] = sops_fetch(cfg, cfg["secret"])
 else:
     secrets = []
-    cfg['hash'] = 'none'
+    cfg["hash"] = "none"
 
 secret = yaml.safe_load(secret.format(cfg=cfg))
 deployment = yaml.safe_load(deployment.format(cfg=cfg))
@@ -161,41 +169,57 @@ virt_service = yaml.safe_load(virt_service.format(cfg=cfg))
 dest_rule = yaml.safe_load(dest_rule.format(cfg=cfg))
 service = yaml.safe_load(service.format(cfg=cfg))
 first_prefix = None
-for version in cfg['versions']:
+for version in cfg["versions"]:
     if version == "all":
         if first_prefix is None:
             first_prefix = f"/{cfg['name']}"
-        match = { 'uri' : { 'prefix': f"/{cfg['name']}" } }
+        match = {"uri": {"prefix": f"/{cfg['name']}"}}
     else:
         if re.match("^v[0-9]", version):
-            if '/' in version:
+            if "/" in version:
                 if first_prefix is None:
                     first_prefix = f"/{version}"
-                match = { 'uri' : { 'prefix': f"/{version}" } }
+                match = {"uri": {"prefix": f"/{version}"}}
             else:
                 if first_prefix is None:
                     first_prefix = f"/{version}/{cfg['name']}"
-                match = { 'uri' : { 'prefix': f"/{version}/{cfg['name']}" } }
+                match = {"uri": {"prefix": f"/{version}/{cfg['name']}"}}
         else:
             if first_prefix is None:
                 first_prefix = f"/{version}"
-            match = { 'uri' : { 'prefix': f"/{version}" } }
-    virt_service['spec']['http'][0]['match'].append( match )
+            match = {"uri": {"prefix": f"/{version}"}}
+    virt_service["spec"]["http"][0]["match"].append(match)
 
-match = { 'match': [{ 'uri': { 'prefix': f"{first_prefix}/healthz" }}],
-          'rewrite': { 'uri': '/healthz' },
-          'route': [{ 'destination': { 'host': f"{cfg['name_version']}-{cfg['name']}.api.svc.cluster.local",
-              'port': { 'number': cfg['port'] }} } ]}
-virt_service['spec']['http'].insert(0, match )
+match = {
+    "match": [{"uri": {"prefix": f"{first_prefix}/healthz"}}],
+    "rewrite": {"uri": "/healthz"},
+    "route": [
+        {
+            "destination": {
+                "host": f"{cfg['name_version']}-{cfg['name']}.api.svc.cluster.local",
+                "port": {"number": cfg["port"]},
+            }
+        }
+    ],
+    "headers": {
+        "response": {
+            "set": {"Strict-Transport-Security": "max-age=63072000; includeSubDomains"},
+            "remove": ["x-envoy-upstream-service-time"],
+        }
+    },
+}
+virt_service["spec"]["http"].insert(0, match)
 
-cfg['env'].append({ 'name': "API_ROOT", 'value': "api.__ROOT_DOMAIN__" })
-deployment['spec']['template']['spec']['containers'][API_CONTAINER_INDEX]['env'] = cfg['env']
+cfg["env"].append({"name": "API_ROOT", "value": "api.__ROOT_DOMAIN__"})
+deployment["spec"]["template"]["spec"]["containers"][API_CONTAINER_INDEX]["env"] = cfg[
+    "env"
+]
 
 if "mounts" in cfg:
-    if "secrets" in cfg['mounts']:
-        add_mount(cfg['mounts']['secrets'], "s-")
-    if "configMap" in cfg['mounts']:
-        add_mount(cfg['mounts']['configMap'], "c-")
+    if "secrets" in cfg["mounts"]:
+        add_mount(cfg["mounts"]["secrets"], "s-")
+    if "configMap" in cfg["mounts"]:
+        add_mount(cfg["mounts"]["configMap"], "c-")
 
 policy_agent_cfg = cfg.get("policy-agent", {})
 if policy_agent_cfg.get("enabled", False):
@@ -211,11 +235,11 @@ if "db" in cfg:
     database = yaml.safe_load(database.format(cfg=cfg))
     print_obj(database)
 
-if 'monitor' in cfg:
+if "monitor" in cfg:
     service_monitor = yaml.safe_load(service_monitor.format(cfg=cfg))
     print_obj(service_monitor)
     alerting_rules = yaml.safe_load(alerting_rules.format(cfg=cfg))
     print_obj(alerting_rules)
 
-secret['stringData'] = secrets
+secret["stringData"] = secrets
 print_obj(secret)
