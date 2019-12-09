@@ -15,6 +15,7 @@ spec:
       headers:
         response:
           set:
+            Cache-control: "no-store"
             Strict-Transport-Security: "max-age=63072000; includeSubDomains"
             X-Content-Type-Options: nosniff
             X-Frame-Options: sameorigin
