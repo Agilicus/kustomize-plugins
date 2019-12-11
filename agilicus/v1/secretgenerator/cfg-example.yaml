@@ -7,3 +7,4 @@ metadata:
 type: ConfigMap
 secret:
   - secret
+  - DOG
