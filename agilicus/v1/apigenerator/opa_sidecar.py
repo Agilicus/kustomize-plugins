@@ -134,6 +134,7 @@ spec:
     - applyTo: HTTP_FILTER
       match:
         context: SIDECAR_INBOUND
+        listener: {{}}
       patch:
         operation: INSERT_BEFORE
         value:
