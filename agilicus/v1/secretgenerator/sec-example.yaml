@@ -4,6 +4,8 @@ kind: SecretGenerator
 metadata:
   name: mysecret
   namespace: default
+  annotations:
+    kubed.appscode.com/sync: ns=customer
 type: Secret
 secret:
   - secret
