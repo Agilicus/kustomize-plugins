@@ -144,4 +144,7 @@ spec:
                 target_uri: "127.0.0.1:9191"
                 stat_prefix: "ext_authz"
               timeout: 5.000s
+            with_request_body:
+              max_request_bytes: 1048576
+              allow_partial_message: false
 """
