@@ -126,22 +126,25 @@ metadata:
   name: {cfg[name_version]}-{cfg[name]}-ext-authz-grpc
   namespace: {cfg[metadata][namespace]}
 spec:
-  workloadLabels:
-    app: {cfg[name_version]}-{cfg[name]}
-  filters:
-    - insertPosition:
-        index: FIRST
-      listenerMatch:
-        listenerType: SIDECAR_INBOUND
-        listenerProtocol: HTTP
-      filterType: HTTP
-      filterName: "envoy.ext_authz"
-      filterConfig:
-        grpc_service:
-          # envoy_grpc:
-          google_grpc:
-            target_uri: "127.0.0.1:9191"
-            stat_prefix: "ext_authz"
-          timeout: 5.000s
-        stat_prefix: "ext_authz"
+  workloadSelector:
+    labels:
+      app: {cfg[name_version]}-{cfg[name]}
+
+  configPatches:
+    - applyTo: HTTP_FILTER
+      match:
+        context: SIDECAR_INBOUND
+      patch:
+        operation: INSERT_BEFORE
+        value:
+          name: "envoy.ext_authz"
+          config:
+            grpc_service:
+              google_grpc:
+                target_uri: "127.0.0.1:9191"
+                stat_prefix: "ext_authz"
+              timeout: 5.000s
+            with_request_body:
+              max_request_bytes: 1048576
+              allow_partial_message: false
 """
