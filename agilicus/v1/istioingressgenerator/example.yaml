@@ -6,6 +6,7 @@ metadata:
 name: alertmanager
 hostname: alertmanager.__ROOT_DOMAIN__
 issuer: letsencrypt-istio
+name_is_unique: true
 cookie_hash: true
 match_routes:
   http:
