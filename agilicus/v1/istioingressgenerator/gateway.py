@@ -2,7 +2,7 @@ spec = """
 apiVersion: networking.istio.io/v1alpha3
 kind: Gateway
 metadata:
-  name: {data[name]}-{data[metadata][namespace]}-gw
+  name: {name}
   namespace: istio-system
   labels:
     app: ingressgateway
