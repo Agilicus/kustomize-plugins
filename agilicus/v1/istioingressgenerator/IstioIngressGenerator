@@ -36,7 +36,13 @@ if not "namespace" in data["metadata"]:
 
 
 def make_gateway(data, secret_name, allow_plaintext):
-    gw = yaml.safe_load(gateway.spec.format(data=data))
+    name_is_unique = data.get('name_is_unique', False)
+    if name_is_unique:
+        name = f"{data['name']}-gw"
+    else:
+        name = f"{data['name']}-{data['metadata']['namespace']}-gw"
+
+    gw = yaml.safe_load(gateway.spec.format(name=name))
 
     https_server = yaml.safe_load(gateway.base_server.format(data=data,
                                                              secret_name=secret_name))
@@ -57,6 +63,7 @@ def gen(data, name, namespace, hostname, match_routes, issuer):
         hash_name = chash(uhash_name)
         secret_name = f"h{hash_name}-{data['name']}-{data['metadata']['namespace']}-certificate"
 
+    gw_name = f"{uhash_name}-gw"
     allow_plaintext = data.get("allow_plaintext", False)
 
     cert = f"""
@@ -91,7 +98,7 @@ spec:
   hosts:
     - {data['hostname']}
   gateways:
-    - istio-system/{data['name']}-{data['metadata']['namespace']}-gw
+    - istio-system/{gw_name}
 """
 
     gw = make_gateway(data, secret_name, allow_plaintext)
