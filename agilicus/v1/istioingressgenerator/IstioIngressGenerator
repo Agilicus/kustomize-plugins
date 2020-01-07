@@ -63,6 +63,7 @@ def gen(data, name, namespace, hostname, match_routes, issuer):
         hash_name = chash(uhash_name)
         secret_name = f"h{hash_name}-{data['name']}-{data['metadata']['namespace']}-certificate"
 
+    common_name = data.get('common_name', data['hostname'])
     gw_name = f"{uhash_name}-gw"
     allow_plaintext = data.get("allow_plaintext", False)
 
@@ -77,14 +78,16 @@ spec:
   secretName: {secret_name}
   issuerRef:
     name: {data['issuer']}
-  commonName: {data['hostname']}
+  commonName: {common_name}
   dnsNames:
+    - {common_name}
     - {data['hostname']}
   acme:
     config:
       - http01:
           ingressClass: istio
         domains:
+          - {common_name}
           - {data['hostname']}"""
 
     vs = f"""
