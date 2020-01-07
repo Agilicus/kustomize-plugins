@@ -72,8 +72,6 @@ kind: Secret
 metadata:
   name: regcred
   namespace: {ns}
-  annotations:
-    kustomize.config.k8s.io/id: 1
 type: kubernetes.io/dockerconfigjson
 stringData:
   .dockerconfigjson: '{secret_value}'
