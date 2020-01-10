@@ -207,6 +207,10 @@ match = {
             "remove": ["x-envoy-upstream-service-time"],
         }
     },
+    "retries": {
+        "attempts": 3,
+        "retryOn": "connect-failure,refused-stream,unavailable,cancelled,resource-exhausted,5xx,retriable-status-codes"
+    }
 }
 virt_service["spec"]["http"].insert(0, match)
 
