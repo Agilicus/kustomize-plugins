@@ -170,31 +170,31 @@ spec:
       tcp:
         connectTimeout: 1500ms
 """
+    dr_obj = yaml.safe_load(dr)
     disable_destination = False
     if "destination" in data:
         disable_destination = data['destination'].get("disable", disable_destination)
         port = data["match_routes"]["http"][0]["route"][0]["destination"][
             "port"
         ]["number"]
-        dr = yaml.safe_load(dr)
         if "tls" in data["destination"]:
-            if 'trafficPolicy' not in dr['spec']:
-                dr["spec"]["trafficPolicy"] = {}
-            dr["spec"]["trafficPolicy"]["portLevelSettings"][0]["tls"] = data[
+            if 'trafficPolicy' not in dr_obj['spec']:
+                dr_obj["spec"]["trafficPolicy"] = {}
+            dr_obj["spec"]["trafficPolicy"]["portLevelSettings"][0]["tls"] = data[
                 "destination"
             ]["tls"]
-            dr["spec"]["trafficPolicy"]["portLevelSettings"][0]["port"]["number"] = port
+            dr_obj["spec"]["trafficPolicy"]["portLevelSettings"][0]["port"]["number"] = port
         if "loadBalancer" in data["destination"]:
-            if 'trafficPolicy' not in dr['spec']:
-                dr["spec"]["trafficPolicy"] = {}
-            dr["spec"]["trafficPolicy"]["loadBalancer"] = data["destination"][
+            if 'trafficPolicy' not in dr_obj['spec']:
+                dr_obj["spec"]["trafficPolicy"] = {}
+            dr_obj["spec"]["trafficPolicy"]["loadBalancer"] = data["destination"][
                 "loadBalancer"
             ]
     if not disable_destination:
-        # See https://github.com/yaml/pyyaml/pull/129 for why the copy
-        dr_obj = yaml.safe_load(dr)
         print("---")
-        print(yaml.dump(dr_obj))
+         # See https://github.com/yaml/pyyaml/pull/129 for why the copy
+        dr_to_dump = json.loads(json.dumps(dr_obj))
+        print(yaml.dump(dr_to_dump, indent=2, default_flow_style=False))
 
 gen(
     data,
