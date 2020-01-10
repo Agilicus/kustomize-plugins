@@ -129,6 +129,14 @@ spec:
             if 'remove' not in m['headers']['response']:
                 m['headers']['response']['remove'] = ['x-envoy-upstream-service-time']
 
+    # Add defaults to the route configuration
+    for m in data.get("match_routes", {}).get("http", []):
+        retries = m.setdefault('retries', {})
+        if 'retryOn' not in retries:
+            retries['retryOn'] = 'connect-failure,refused-stream,unavailable,cancelled,resource-exhausted,5xx,retriable-status-codes'
+        if 'attempts' not in retries:
+            retries['attempts'] = 3
+
     print(yaml.dump(cert_yaml))
     print ("---")
     print(yaml.dump(vs_yaml))
@@ -142,12 +150,9 @@ spec:
         data["destination"]["loadBalancer"]["consistentHash"]["httpCookie"][
             "ttl"
         ] = "0s"
-    if "destination" in data:
-        host = data['match_routes']['http'][0]['route'][0]['destination']['host']
-        port = data["match_routes"]["http"][0]["route"][0]["destination"][
-            "port"
-        ]["number"]
-        dr = f"""
+
+    host = data['match_routes']['http'][0]['route'][0]['destination']['host']
+    dr = f"""
 apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule
 metadata:
@@ -161,7 +166,16 @@ spec:
       interval: 5s
       baseEjectionTime: 10m
       maxEjectionPercent: 50
+    connectionPool:
+      tcp:
+        connectTimeout: 1500ms
 """
+    disable_destination = False
+    if "destination" in data:
+        disable_destination = data['destination'].get("disable", disable_destination)
+        port = data["match_routes"]["http"][0]["route"][0]["destination"][
+            "port"
+        ]["number"]
         dr = yaml.safe_load(dr)
         if "tls" in data["destination"]:
             if 'trafficPolicy' not in dr['spec']:
@@ -176,10 +190,11 @@ spec:
             dr["spec"]["trafficPolicy"]["loadBalancer"] = data["destination"][
                 "loadBalancer"
             ]
+    if not disable_destination:
         # See https://github.com/yaml/pyyaml/pull/129 for why the copy
-        dr = json.loads(json.dumps(dr))
+        dr_obj = yaml.safe_load(dr)
         print("---")
-        print( yaml.dump(dr, indent=2, default_flow_style=False))
+        print(yaml.dump(dr_obj))
 
 gen(
     data,
