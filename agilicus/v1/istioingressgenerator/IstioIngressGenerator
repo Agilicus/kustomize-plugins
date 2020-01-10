@@ -103,6 +103,10 @@ spec:
   gateways:
     - istio-system/{gw_name}
 """
+    cert_yaml = yaml.safe_load(cert)
+    cert_yaml["spec"]["dnsNames"] = list(set(cert_yaml["spec"]["dnsNames"]))
+    cert_yaml["spec"]["acme"]["config"][0]["domains"] = list(
+        set(cert_yaml["spec"]["acme"]["config"][0]["domains"]))
 
     gw = make_gateway(data, secret_name, allow_plaintext)
     vs_yaml = yaml.safe_load(vs)
@@ -125,7 +129,7 @@ spec:
             if 'remove' not in m['headers']['response']:
                 m['headers']['response']['remove'] = ['x-envoy-upstream-service-time']
 
-    print(cert)
+    print(yaml.dump(cert_yaml))
     print ("---")
     print(yaml.dump(vs_yaml))
     print(textwrap.indent(yaml.dump(data["match_routes"], indent=2), 2 * " "))
