@@ -13,4 +13,7 @@ spec:
       interval: 5s
       baseEjectionTime: 10m
       maxEjectionPercent: 50
+    connectionPool:
+      tcp:
+        connectTimeout: 1500ms
 """
