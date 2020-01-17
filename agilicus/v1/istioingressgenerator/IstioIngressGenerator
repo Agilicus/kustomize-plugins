@@ -162,9 +162,9 @@ spec:
   host: {host}
   trafficPolicy:
     outlierDetection:
-      consecutiveErrors: 2
+      consecutiveErrors: 15
       interval: 5s
-      baseEjectionTime: 10m
+      baseEjectionTime: 10s
       maxEjectionPercent: 50
     connectionPool:
       tcp:
