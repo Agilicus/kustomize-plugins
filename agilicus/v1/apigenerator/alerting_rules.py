@@ -42,12 +42,12 @@ spec:
           annotations:
             summary: "API Service {cfg[name_version]}-{cfg[name]} experiencing 403 errors"
         - alert: {cfg[name_version]}-{cfg[name]} not meeting response time SLA
-          expr: '0 < sum(rate(flask_http_request_duration_seconds_bucket{{le="0.5",job="{cfg[name_version]}-{cfg[name]}",path!="/healthz"}}[5m])) / sum(rate(flask_http_request_duration_seconds_count{{job="{cfg[name_version]}-{cfg[name]}",path!="/healthz"}}[5m])) < 0.95'
+          expr: '0 < sum(rate(flask_http_request_duration_seconds_bucket{{le="2.5",job="{cfg[name_version]}-{cfg[name]}",path!="/healthz"}}[5m])) / sum(rate(flask_http_request_duration_seconds_count{{job="{cfg[name_version]}-{cfg[name]}",path!="/healthz"}}[5m])) < 0.95'
           for: 5m
           labels:
             severity: warning
           annotations:
-            summary: "API {cfg[name_version]}-{cfg[name]} is not meeting the SLA requirement of 95% of all requests within 500ms"
+            summary: "API {cfg[name_version]}-{cfg[name]} is not meeting the SLA requirement of 95% of all requests within 2500ms"
         - alert: {cfg[name_version]}-{cfg[name]}  api,db connection issue
           expr: 'sum(rate(db_fail_total{{service = "{cfg[name_version]}-{cfg[name]}"}}[1m])) > 0 and  sum(rate(flask_http_request_total{{service="{cfg[name_version]}-{cfg[name]}",status=~"5.."}}[1m])) > 0'
           for: 1m
