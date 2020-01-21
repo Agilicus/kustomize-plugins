@@ -8,6 +8,7 @@ metadata:
     prometheus: main
     role: alert-rules
   name: {cfg[name_version]}-{cfg[name]}-api-rules
+  namespace: {cfg[metadata][namespace]}
 spec:
   groups:
     - name: alerts
