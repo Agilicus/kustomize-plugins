@@ -45,4 +45,7 @@ spec:
           - authorization
           - content-type
         maxAge: "24h"
+      retries:
+        attempts: 5
+        retryOn: connect-failure,refused-stream,unavailable,cancelled,resource-exhausted,5xx,retriable-status-codes
 """

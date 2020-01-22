@@ -135,7 +135,7 @@ spec:
         if 'retryOn' not in retries:
             retries['retryOn'] = 'connect-failure,refused-stream,unavailable,cancelled,resource-exhausted,5xx,retriable-status-codes'
         if 'attempts' not in retries:
-            retries['attempts'] = 3
+            retries['attempts'] = 5
 
     print(yaml.dump(cert_yaml))
     print ("---")
@@ -162,9 +162,9 @@ spec:
   host: {host}
   trafficPolicy:
     outlierDetection:
-      consecutiveErrors: 15
+      consecutiveErrors: 3
       interval: 5s
-      baseEjectionTime: 10s
+      baseEjectionTime: 2s
       maxEjectionPercent: 50
     connectionPool:
       tcp:
