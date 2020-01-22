@@ -208,7 +208,7 @@ match = {
         }
     },
     "retries": {
-        "attempts": 3,
+        "attempts": 5,
         "retryOn": "connect-failure,refused-stream,unavailable,cancelled,resource-exhausted,5xx,retriable-status-codes"
     }
 }
