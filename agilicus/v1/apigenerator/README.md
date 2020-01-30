@@ -112,5 +112,11 @@ policy-agent:
   enabled: true
 ```
 
+### with_request_body control
+The policy-agent config as an additional configuration named "with_request_body".
+By default, request body is sent to the authz opa, however, this can be
+disabled via "with_request_body: false". Disabling request body is a current
+workaround to limit large bodies (upload/binary) to be sent to the authz sidecar.
+
 Note that this assumes the existence of an authz model in the working
 directory of the container. The model must be named `model.yaml`.

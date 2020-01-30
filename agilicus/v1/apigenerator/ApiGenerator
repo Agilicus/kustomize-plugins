@@ -13,6 +13,7 @@ import os
 import subprocess
 import re
 import zlib
+import ruamel.yaml
 
 from deployment import deployment
 from virt_service import virt_service
@@ -25,17 +26,30 @@ from alerting_rules import alerting_rules
 
 import opa_sidecar
 
+yaml = ruamel.yaml.YAML()
 API_CONTAINER_INDEX = 0
 
 
-def add_mount(vars, prefix):
+def add_mount(cfg, vars, prefix):
     for mounts in vars:
-        name = prefix + mounts["name"]
-        volumeMount_name = mounts["name"]
         path = mounts["path"]
+
+        if "name" not in mounts:
+            # here the specific secret name is not specified, which means use the
+            # the api generated secret object
+            mounts["name"] = f"{cfg['name_version']}-{cfg['name']}-{cfg['hash']}"
+
+        name = prefix + mounts["name"]
+        _mount_obj = {"mountPath": path, "name": name}
+
+        if "subPath" in mounts:
+            _mount_obj["subPath"] = mounts["subPath"]
+
+        volumeMount_name = mounts["name"]
+
         deployment["spec"]["template"]["spec"]["containers"][API_CONTAINER_INDEX][
             "volumeMounts"
-        ].append({"mountPath": path, "name": name})
+        ].append(_mount_obj)
         if prefix == "s-":
             deployment["spec"]["template"]["spec"]["volumes"].append(
                 {"name": name, "secret": {"secretName": volumeMount_name}}
@@ -48,7 +62,7 @@ def add_mount(vars, prefix):
 
 with open(sys.argv[1], "r") as stream:
     try:
-        cfg = yaml.safe_load(stream)
+        cfg = yaml.load(stream)
     except yaml.YAMLError as exc:
         print("Error parsing ApiGenerator input (%s)", file=sys.stderr)
         sys.exit(1)
@@ -95,7 +109,7 @@ def sops_fetch(cfg, keys):
     sfile = find_file(cfg["secret_source"])
     try:
         with subprocess.Popen([sops, "-d", sfile], stdout=subprocess.PIPE) as f:
-            secrets = yaml.safe_load(f.stdout)
+            secrets = yaml.load(f.stdout)
     except subprocess.CalledProcessError as exc:
         print(
             "Is your secret-file %s in %s dir?" % (cfg["secret_source"], os.getcwd()),
@@ -118,13 +132,9 @@ def sops_fetch(cfg, keys):
     return secrets, hash
 
 
-def print_yaml_str(str_to_dump):
-    print("---")
-    print(str_to_dump)
-
-
 def print_obj(obj_to_dump):
-    print_yaml_str(yaml.dump(obj_to_dump, default_flow_style=False))
+    print("---")
+    yaml.dump(obj_to_dump, sys.stdout)
 
 
 def add_policy_agent(cfg: dict, deployment: cfg):
@@ -132,15 +142,21 @@ def add_policy_agent(cfg: dict, deployment: cfg):
     if "auth-name" not in cfg["policy-agent"]:
         cfg["policy-agent"]["auth-name"] = cfg["name"]
 
-    container = yaml.safe_load(opa_sidecar.container.format(cfg=cfg))
-    init_container = yaml.safe_load(opa_sidecar.init_container.format(cfg=cfg))
-    volumes = yaml.safe_load(opa_sidecar.volumes.format(cfg=cfg))
+    container = yaml.load(opa_sidecar.container.format(cfg=cfg))
+    init_container = yaml.load(opa_sidecar.init_container.format(cfg=cfg))
+    volumes = yaml.load(opa_sidecar.volumes.format(cfg=cfg))
     config_str = opa_sidecar.config.format(cfg=cfg)
-    filter_str = opa_sidecar.envoy_filter.format(cfg=cfg)
+    filter_dict  = yaml.load(opa_sidecar.envoy_filter.format(cfg=cfg))
+    do_request_body = True
+    if "with_request_body" in cfg["policy-agent"]:
+        do_request_body = cfg["policy-agent"]["with_request_body"]
+
+    if not do_request_body:
+        del filter_dict['spec']["configPatches"][0]["patch"]["value"]["config"]["with_request_body"]
 
     # Just hash the whole thing. It's simple enough.
     hash = build_hash([config_str])
-    config_obj = yaml.safe_load(config_str)
+    config_obj = yaml.load(config_str)
     cfg_name = config_obj["metadata"]["name"]
     cfg_name = f"{cfg_name}-{hash}"
 
@@ -154,7 +170,7 @@ def add_policy_agent(cfg: dict, deployment: cfg):
     pod_spec["volumes"].extend(volumes)
 
     print_obj(config_obj)
-    print_yaml_str(filter_str)
+    print_obj(filter_dict)
 
 
 if "secret" in cfg and len(cfg["secret"]):
@@ -163,11 +179,11 @@ else:
     secrets = []
     cfg["hash"] = "none"
 
-secret = yaml.safe_load(secret.format(cfg=cfg))
-deployment = yaml.safe_load(deployment.format(cfg=cfg))
-virt_service = yaml.safe_load(virt_service.format(cfg=cfg))
-dest_rule = yaml.safe_load(dest_rule.format(cfg=cfg))
-service = yaml.safe_load(service.format(cfg=cfg))
+secret = yaml.load(secret.format(cfg=cfg))
+deployment = yaml.load(deployment.format(cfg=cfg))
+virt_service = yaml.load(virt_service.format(cfg=cfg))
+dest_rule = yaml.load(dest_rule.format(cfg=cfg))
+service = yaml.load(service.format(cfg=cfg))
 first_prefix = None
 for version in cfg["versions"]:
     if version == "all":
@@ -221,9 +237,9 @@ deployment["spec"]["template"]["spec"]["containers"][API_CONTAINER_INDEX]["env"]
 
 if "mounts" in cfg:
     if "secrets" in cfg["mounts"]:
-        add_mount(cfg["mounts"]["secrets"], "s-")
+        add_mount(cfg, cfg["mounts"]["secrets"], "s-")
     if "configMap" in cfg["mounts"]:
-        add_mount(cfg["mounts"]["configMap"], "c-")
+        add_mount(cfg, cfg["mounts"]["configMap"], "c-")
 
 policy_agent_cfg = cfg.get("policy-agent", {})
 if policy_agent_cfg.get("enabled", False):
@@ -236,13 +252,13 @@ print_obj(service)
 
 
 if "db" in cfg:
-    database = yaml.safe_load(database.format(cfg=cfg))
+    database = yaml.load(database.format(cfg=cfg))
     print_obj(database)
 
 if "monitor" in cfg:
-    service_monitor = yaml.safe_load(service_monitor.format(cfg=cfg))
+    service_monitor = yaml.load(service_monitor.format(cfg=cfg))
     print_obj(service_monitor)
-    alerting_rules = yaml.safe_load(alerting_rules.format(cfg=cfg))
+    alerting_rules = yaml.load(alerting_rules.format(cfg=cfg))
     print_obj(alerting_rules)
 
 secret["stringData"] = secrets

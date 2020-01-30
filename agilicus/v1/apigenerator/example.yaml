@@ -32,3 +32,5 @@ monitor:
   path: /metrics
   scheme: http
   interval: 5s
+policy-agent:
+  enabled: true
