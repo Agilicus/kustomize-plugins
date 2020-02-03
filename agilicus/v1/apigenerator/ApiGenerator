@@ -128,9 +128,12 @@ def print_obj(obj_to_dump):
 
 
 def add_policy_agent(cfg: dict, deployment: cfg):
-    # cfg["auth_name"] = cfg.get("auth-name", cfg["name"])
-    if "auth-name" not in cfg["policy-agent"]:
-        cfg["policy-agent"]["auth-name"] = cfg["name"]
+    default_audience = "urn:api:agilicus" + ":" + cfg["policy-agent"].get("auth-name", cfg["name"])
+    if "audience" not in cfg["policy-agent"]:
+        if cfg["policy-agent"].get("default-aud", False):
+            cfg["policy-agent"]["audience"] = "urn:api:agilicus" 
+        else:
+            cfg["policy-agent"]["audience"] = default_audience
 
     container = yaml.safe_load(opa_sidecar.container.format(cfg=cfg))
     init_container = yaml.safe_load(opa_sidecar.init_container.format(cfg=cfg))
