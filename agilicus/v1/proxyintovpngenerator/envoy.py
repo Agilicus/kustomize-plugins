@@ -12,7 +12,8 @@ static_resources:
       filter_chains:
         - filters:
             - name: envoy.http_connection_manager  # built-in filter designed for HTTP connections
-              config:
+              typed_config:
+                "@type": type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager
                 access_log:
                   - name: envoy.file_access_log
                     config:
@@ -73,7 +74,8 @@ static_resources:
       name: health.listener
       filter_chains:
         - filters:
-            - config:
+            - typed_config:
+                "@type": type.googleapis.com/envoy.config.filter.network.http_connection_manager.v2.HttpConnectionManager
                 access_log:
                   - config:
                       path: /dev/null
@@ -103,9 +105,12 @@ static_resources:
     connect_timeout: 3s
     lb_policy: ROUND_ROBIN
     type: STRICT_DNS
-    tlsContext:
-      commonTlsContext: {{}}
-      sni: {cfg[upstream][host]}
+    transport_socket:
+      name: "envoy.transport_sockets.tls"
+      typed_config:
+        "@type": type.googleapis.com/envoy.api.v2.auth.UpstreamTlsContext
+        common_tls_context: {{}}
+        sni: {cfg[upstream][host]}
     load_assignment:
       cluster_name: {cfg[cluster_name]}
       endpoints:

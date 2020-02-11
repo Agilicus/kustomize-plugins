@@ -89,7 +89,7 @@ def add_direct_responses(envoy_cfg: dict, cfg: dict):
 
     http_filter = find_filter(listener["filter_chains"][0],
                               "envoy.http_connection_manager")
-    vhost = http_filter["config"]["route_config"]["virtual_hosts"][0]
+    vhost = http_filter["typed_config"]["route_config"]["virtual_hosts"][0]
     for response in cfg["direct_responses"]:
         direct_route = {
             "match": {
@@ -130,6 +130,8 @@ cfg["upstream"]["connect_host"] = spec["upstream"].get("connect_host", upstream_
 
 cfg["prefix"] = spec["prefix"]
 cfg["org_id"] = spec["org_id"]
+cfg.setdefault("envoy-image", "docker.io/istio/proxyv2")
+cfg.setdefault("envoy-tag", "1.4.3")
 cfg["tokens_secret"] = spec["tokens_secret"]
 if "direct_responses" in spec:
     cfg["direct_responses"] = spec["direct_responses"]
