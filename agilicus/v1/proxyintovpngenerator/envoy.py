@@ -62,10 +62,25 @@ static_resources:
                           route:
                             priority: null
                             timeout: 3.000s
+                            host_rewrite: "{cfg[upstream][host]}"
                             weighted_clusters:
                               clusters:
                                 - name: "{cfg[cluster_name]}"
                                   weight: 100
+                  request_headers_to_remove:
+                    - X-B3-Sampled
+                    - X-B3-Traceid
+                    - X-B3-Spanid
+                    - X-Envoy-Expected-Rq-Timeout-Ms
+                    - X-Envoy-External-Address
+                    - X-Envoy-External-Address
+                    - X-Gateway-Org
+                    - X-Gateway-Tokenid
+                    - X-Gateway-User
+                    - X-Istio-Attributes
+                    - X-Roles-Matched
+                    - X-Token-Valid
+                    - X-Whitelisted
 
                 stat_prefix: ingress_http
                 use_remote_address: true
