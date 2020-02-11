@@ -62,7 +62,6 @@ static_resources:
                           route:
                             priority: null
                             timeout: 3.000s
-                            host_rewrite: "{cfg[upstream][host]}"
                             weighted_clusters:
                               clusters:
                                 - name: "{cfg[cluster_name]}"
