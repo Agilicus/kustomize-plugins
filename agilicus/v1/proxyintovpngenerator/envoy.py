@@ -112,7 +112,10 @@ static_resources:
         common_tls_context:
           tls_params:
             tls_maximum_protocol_version: TLSv1_2
-
+          validation_context:
+            verify_subject_alt_name: [{cfg[upstream][host]}]
+            trusted_ca:
+              filename: /etc/ssl/certs/ca-certificates.crt
         sni: {cfg[upstream][host]}
     load_assignment:
       cluster_name: {cfg[cluster_name]}
