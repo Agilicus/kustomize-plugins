@@ -109,7 +109,10 @@ static_resources:
       name: "envoy.transport_sockets.tls"
       typed_config:
         "@type": type.googleapis.com/envoy.api.v2.auth.UpstreamTlsContext
-        common_tls_context: {{}}
+        common_tls_context:
+          tls_params:
+            tls_maximum_protocol_version: TLSv1_2
+
         sni: {cfg[upstream][host]}
     load_assignment:
       cluster_name: {cfg[cluster_name]}
