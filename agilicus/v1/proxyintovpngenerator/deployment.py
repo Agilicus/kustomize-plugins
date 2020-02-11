@@ -21,7 +21,7 @@ spec:
         fsGroup: 2000
       containers:
         - name: http-ws-{cfg[name]}
-          image: envoyproxy/envoy:v1.11.0
+          image: {cfg[envoy-image]}:{cfg[envoy-tag]}
           resources:
             limits:
               cpu: 2
