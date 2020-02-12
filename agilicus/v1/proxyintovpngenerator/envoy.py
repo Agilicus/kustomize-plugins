@@ -60,6 +60,7 @@ static_resources:
                         - match:
                             prefix: "{cfg[prefix]}"
                           route:
+                            host_rewrite: "{cfg[upstream][rewrite_host]}"
                             priority: null
                             timeout: 3.000s
                             weighted_clusters:
@@ -80,6 +81,7 @@ static_resources:
                     - X-Roles-Matched
                     - X-Token-Valid
                     - X-Whitelisted
+                    - X-Forwarded-Proto
 
                 stat_prefix: ingress_http
                 use_remote_address: true
