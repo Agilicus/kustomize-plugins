@@ -57,10 +57,10 @@ static_resources:
                         - '{cfg[downstream_base_host]}.__ROOT_DOMAIN__'
                       name: gateway
                       routes:
-                        - match:
+                        - name: main_route
+                          match:
                             prefix: "{cfg[prefix]}"
                           route:
-                            host_rewrite: "{cfg[upstream][rewrite_host]}"
                             priority: null
                             timeout: 3.000s
                             weighted_clusters:
