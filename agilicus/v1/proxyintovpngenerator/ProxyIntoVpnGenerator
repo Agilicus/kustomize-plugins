@@ -11,6 +11,7 @@ import sys
 import yaml
 import zlib
 
+import service_monitor
 from configmap_template import config_map_base
 from deployment import deployment
 from ingress import ingress
@@ -92,7 +93,7 @@ def setup_tls(envoy_obj: dict, tls: dict):
         # enable by default
         return
 
-    cluster = envoy_obj["static_resources"]["clusters"]
+    cluster = envoy_obj["static_resources"]["clusters"][0]
     del cluster["transport_socket"]
 
 
@@ -203,6 +204,7 @@ backend_service_obj = yaml.safe_load(backend_service.format(cfg=cfg))
 deployment_obj = yaml.safe_load(deployment.format(cfg=cfg))
 rbac_obj = yaml.safe_load(rbac.format(cfg=cfg))
 service_obj = yaml.safe_load(service.format(cfg=cfg))
+service_monitor_obj = yaml.safe_load(service_monitor.obj.format(cfg=cfg))
 envoy_configmap = build_configmap(cfg["envoy_config_name"], "envoy.yaml",
                                   rendered_envoy, cfg)
 xinetd_configmap = build_configmap(cfg["xinetd_config_name"], "http-ws-xinetd",
@@ -228,3 +230,5 @@ print("---")
 print(yaml.dump(xinetd_configmap, default_flow_style=False))
 print("---")
 print(rendered_ingress)
+print("---")
+print(yaml.dump(service_monitor_obj, default_flow_style=False))

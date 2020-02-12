@@ -94,7 +94,7 @@ static_resources:
           address: 0.0.0.0
           port_value: 8877
           protocol: TCP
-      name: health.listener
+      name: admin_and_health.listener
       filter_chains:
         - filters:
             - typed_config:
@@ -105,12 +105,12 @@ static_resources:
                     name: envoy.file_access_log
                 http_filters:
                   - name: envoy.router
-                stat_prefix: health_check_http
+                stat_prefix: admin_and_health_http
                 route_config:
                   virtual_hosts:
                     - domains:
                         - '*'
-                      name: health-check
+                      name: admin_and_health
                       routes:
                         - match:
                             case_sensitive: true
@@ -122,38 +122,113 @@ static_resources:
                             prefix: /http-ws/v0/check_ready
                           direct_response:
                             status: 200
+                        - match:
+                            case_sensitive: true
+                            prefix: /http-ws/v0/metrics
+                          route:
+                            priority: null
+                            timeout: 3.000s
+                            prefix_rewrite: "/stats/prometheus"
+                            weighted_clusters:
+                              clusters:
+                                - name: admin
+                                  weight: 100
               name: envoy.http_connection_manager
   clusters:
-    name: {cfg[cluster_name]}
-    connect_timeout: 3s
-    lb_policy: ROUND_ROBIN
-    type: STRICT_DNS
-    transport_socket:
-      name: "envoy.transport_sockets.tls"
-      typed_config:
-        "@type": type.googleapis.com/envoy.api.v2.auth.UpstreamTlsContext
-        common_tls_context:
-          tls_params:
-            tls_maximum_protocol_version: TLSv1_2
-          validation_context:
-            verify_subject_alt_name: [{cfg[upstream][host]}]
-            trusted_ca:
-              filename: /etc/ssl/certs/ca-certificates.crt
-        sni: {cfg[upstream][host]}
-    load_assignment:
-      cluster_name: {cfg[cluster_name]}
-      endpoints:
-        - lb_endpoints:
-            - endpoint:
-                address:
-                  socket_address:
-                    address: 127.0.0.1
-                    port_value: 5556
-                    protocol: TCP
+    - name: {cfg[cluster_name]}
+      connect_timeout: 3s
+      lb_policy: ROUND_ROBIN
+      type: STRICT_DNS
+      transport_socket:
+        name: "envoy.transport_sockets.tls"
+        typed_config:
+          "@type": type.googleapis.com/envoy.api.v2.auth.UpstreamTlsContext
+          common_tls_context:
+            tls_params:
+              tls_maximum_protocol_version: TLSv1_2
+            validation_context:
+              verify_subject_alt_name: [{cfg[upstream][host]}]
+              trusted_ca:
+                filename: /etc/ssl/certs/ca-certificates.crt
+          sni: {cfg[upstream][host]}
+      load_assignment:
+        cluster_name: {cfg[cluster_name]}
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: 127.0.0.1
+                      port_value: 5556
+                      protocol: TCP
+    - name: admin
+      connect_timeout: 3s
+      lb_policy: ROUND_ROBIN
+      type: STRICT_DNS
+      load_assignment:
+        cluster_name: {cfg[cluster_name]}
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: 127.0.0.1
+                      port_value: 8001
+                      protocol: TCP
 admin:
   access_log_path: "/dev/null"
   address:
     socket_address:
       address: 127.0.0.1
       port_value: 8001
+stats_config:
+  stats_matcher:
+    inclusion_list:
+      patterns:
+        - prefix: reporter=
+        - prefix: component
+        - prefix: cluster.outbound
+        - prefix: listener
+        - prefix: cluster
+        - prefix: cluster_manager
+        - prefix: listener_manager
+        - prefix: server
+        - prefix: cluster.xds-grpc
+        - prefix: cluster_manager
+        - prefix: listener_manager
+        - prefix: server
+        - prefix: cluster.xds-grpc
+  stats_tags:
+    - regex: ^cluster\.((.+?(\..+?\.svc\.cluster\.local)?)\.)
+      tag_name: cluster_name
+    - regex: ^tcp\.((.*?)\.)\w+?$
+      tag_name: tcp_prefix
+    - regex: (response_code=\.=(.+?);\.;)|_rq(_(\.d{{3}}))$
+      tag_name: response_code
+    - regex: _rq(_(\dxx))$
+      tag_name: response_code_class
+    - regex: ^listener(?=\.).*?\.http\.(((?:[_.[:digit:]]*|[_\[\]aAbBcCdDeEfF[:digit:]]*))\.)
+      tag_name: http_conn_manager_listener_prefix
+    - regex: ^http\.(((?:[_.[:digit:]]*|[_\[\]aAbBcCdDeEfF[:digit:]]*))\.)
+      tag_name: http_conn_manager_prefix
+    - regex: ^listener\.(((?:[_.[:digit:]]*|[_\[\]aAbBcCdDeEfF[:digit:]]*))\.)
+      tag_name: listener_address
+    - regex: ^mongo\.(.+?)\.(collection|cmd|cx_|op_|delays_|decoding_)(.*?)$
+      tag_name: mongo_prefix
+    - regex: (reporter=\.=(.+?);\.;)
+      tag_name: reporter
+    - regex: (source_namespace=\.=(.+?);\.;)
+      tag_name: source_namespace
+    - regex: (request_protocol=\.=(.+?);\.;)
+      tag_name: request_protocol
+    - regex: (response_flags=\.=(.+?);\.;)
+      tag_name: response_flags
+    - regex: (cache\.(.+?)\.)
+      tag_name: cache
+    - regex: (component\.(.+?)\.)
+      tag_name: component
+    - regex: (tag\.(.+?)\.)
+      tag_name: tag
+  use_all_default_tags: false
+
 """
