@@ -57,7 +57,8 @@ static_resources:
                         - '{cfg[downstream_base_host]}.__ROOT_DOMAIN__'
                       name: gateway
                       routes:
-                        - match:
+                        - name: main_route
+                          match:
                             prefix: "{cfg[prefix]}"
                           route:
                             priority: null
@@ -80,6 +81,7 @@ static_resources:
                     - X-Roles-Matched
                     - X-Token-Valid
                     - X-Whitelisted
+                    - X-Forwarded-Proto
 
                 stat_prefix: ingress_http
                 use_remote_address: true

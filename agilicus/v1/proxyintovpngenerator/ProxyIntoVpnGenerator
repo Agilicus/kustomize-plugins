@@ -83,6 +83,19 @@ def find_filter(filter_list, name):
     return None
 
 
+def tls_enabled(tls: dict):
+    return tls.get("enabled", True)
+
+
+def setup_tls(envoy_obj: dict, tls: dict):
+    if tls_enabled(tls):
+        # enable by default
+        return
+
+    cluster = envoy_obj["static_resources"]["clusters"]
+    del cluster["transport_socket"]
+
+
 def add_direct_responses(envoy_cfg: dict, cfg: dict):
     # The first listener should be the one we care about
     listener = envoy_cfg["static_resources"]["listeners"][0]
@@ -106,6 +119,24 @@ def add_direct_responses(envoy_cfg: dict, cfg: dict):
         vhost["routes"].insert(0, direct_route)
 
 
+def find_route(http_filter: dict, name):
+    vhost = http_filter["typed_config"]["route_config"]["virtual_hosts"][0]
+    for route in vhost["routes"]:
+        if route.get("name", "") == name:
+            return route
+
+    return None
+
+
+def add_host_rewrite(envoy_obj: dict, hostname: str):
+    listener = envoy_obj["static_resources"]["listeners"][0]
+    http_filter = find_filter(listener["filter_chains"][0],
+                              "envoy.http_connection_manager")
+
+    route = find_route(http_filter, "main_route")
+    route["route"]["host_rewrite"] = hostname
+
+
 with open(sys.argv[1], 'r') as stream:
     try:
         doc = yaml.safe_load(stream)
@@ -123,9 +154,17 @@ cfg = dict()
 cfg["name"] = metadata["name"]
 cfg["namespace"] = metadata.get("namespace", "default")
 cfg["downstream_base_host"] = spec["downstream_base_host"]
+tls = spec.get("tls", {})
+
 cfg["upstream"] = dict()
 upstream_host = spec["upstream"]["host"]
 cfg["upstream"]["host"] = upstream_host
+
+default_port = 443
+if not tls_enabled(tls):
+    default_port = 80
+
+cfg["upstream"]["port"] = cfg["upstream"].get("port", default_port)
 cfg["upstream"]["connect_host"] = spec["upstream"].get("connect_host", upstream_host)
 
 cfg["prefix"] = spec["prefix"]
@@ -142,6 +181,12 @@ add_inferred_config(cfg)
 # build their hashes and refer to them elsewhere.
 envoy_obj = yaml.safe_load(envoy_cfg.format(cfg=cfg))
 add_direct_responses(envoy_obj, cfg)
+
+rewrite_host = spec["upstream"].get("rewrite_host", None)
+if rewrite_host:
+    add_host_rewrite(envoy_obj, rewrite_host)
+
+setup_tls(envoy_obj, tls)
 rendered_envoy = yaml.dump(envoy_obj)
 rendered_xinetd = xinetd_cfg.format(cfg=cfg)
 
