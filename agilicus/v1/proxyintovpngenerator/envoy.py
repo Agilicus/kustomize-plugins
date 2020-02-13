@@ -82,6 +82,8 @@ static_resources:
                     - X-Token-Valid
                     - X-Whitelisted
                     - X-Forwarded-Proto
+                    - X-Forwarded-For
+                    - x-request-id
 
                 stat_prefix: ingress_http
                 use_remote_address: true
