@@ -8,6 +8,7 @@ metadata:
 name: http-ws-{cfg[downstream_base_host]}
 hostname: {cfg[downstream_base_host]}.__ROOT_DOMAIN__
 issuer: letsencrypt-istio
+cookie_hash: true
 match_routes:
   http:
     - match:
