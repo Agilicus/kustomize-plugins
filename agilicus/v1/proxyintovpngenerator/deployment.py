@@ -65,16 +65,18 @@ spec:
           ports:
             - name: http
               containerPort: 8080
+            - name: admin-health
+              containerPort: 8877
           livenessProbe:
             httpGet:
               path: /http-ws/v0/check_alive
-              port: 8877
+              port: admin-health
             initialDelaySeconds: 5
             periodSeconds: 3
           readinessProbe:
             httpGet:
               path: /http-ws/v0/check_ready
-              port: 8877
+              port: admin-health
             initialDelaySeconds: 5
             periodSeconds: 3
         - name: tcp-to-https
