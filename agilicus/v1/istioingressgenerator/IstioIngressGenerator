@@ -139,10 +139,13 @@ spec:
     if "cookie_hash" in data and data["cookie_hash"]:
         data["destination"]["loadBalancer"]["consistentHash"]["httpCookie"][
             "name"
-        ] = "__Host-agilicus-lb"
+        ] = "agilicus-lb"
         data["destination"]["loadBalancer"]["consistentHash"]["httpCookie"][
             "ttl"
         ] = "0s"
+        data["destination"]["loadBalancer"]["consistentHash"]["httpCookie"][
+            "path"
+        ] = "/"
 
     host = data['match_routes']['http'][0]['route'][0]['destination']['host']
     dr = f"""

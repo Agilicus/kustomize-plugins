@@ -2,7 +2,10 @@
 
 If `cookie_hash: true` then it will automatically generate
 a DestinationRule with consitentHash enabled by a cookie
-called `__Host-agilicus-lb`.
+called `agilicus-lb`.
+
+Note: I would use __Host-agilicus-lb but this requires
+setting Secure, and Istio does not support that.
 
 ```
 ---
@@ -31,6 +34,6 @@ destination:
   loadBalancer:
     consistentHash:
       httpCookie:
-        name: __Host-agilicus-lb
+        name: agilicus-lb
         ttl: 0s
 ```
