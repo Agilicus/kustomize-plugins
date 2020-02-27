@@ -2,7 +2,7 @@
 
 If `cookie_hash: true` then it will automatically generate
 a DestinationRule with consitentHash enabled by a cookie
-called `agilicus-lb`.
+called `__Host-agilicus-lb`.
 
 ```
 ---
@@ -31,6 +31,6 @@ destination:
   loadBalancer:
     consistentHash:
       httpCookie:
-        name: agilicus-lb
+        name: __Host-agilicus-lb
         ttl: 0s
 ```
