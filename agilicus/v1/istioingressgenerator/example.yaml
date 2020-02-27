@@ -25,5 +25,5 @@ match_routes:
 #  loadBalancer:
 #    consistentHash:
 #      httpCookie:
-#        name: agilicus-lb
+#        name: __Host-agilicus-lb
 #        ttl: 0s
