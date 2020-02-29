@@ -1,0 +1,8 @@
+---
+apiVersion: agilicus/v1
+kind: SecretStringEncoderDataTransformer
+metadata:
+  name: not-used-ssdt
+convert:
+  - "*"
+skip: []
