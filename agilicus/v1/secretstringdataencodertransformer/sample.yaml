@@ -1,0 +1,12 @@
+apiVersion: v1
+data:
+  config.yaml: The quick brown fox jumped over the lazy dog
+kind: Secret
+metadata:
+  annotations: {}
+  labels:
+    app: dex
+  name: dex-config-8484d28d6m
+  namespace: dex
+type: Opaque
+
