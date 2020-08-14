@@ -53,6 +53,11 @@ spec:
             periodSeconds: 2
             timeoutSeconds: 2
             failureThreshold: 2
+          resources:
+            limits:
+              memory: "400Mi"
+            requests:
+              memory: "200Mi"
           securityContext:
             readOnlyRootFilesystem: true
             runAsNonRoot: true
