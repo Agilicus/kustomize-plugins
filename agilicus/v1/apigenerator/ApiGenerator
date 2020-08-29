@@ -73,6 +73,12 @@ if len(cfg["versions"][0]) == 0:
 if "name_version" not in cfg:
     cfg["name_version"] = cfg["versions"][0].split("/")[0]
 
+if "mem_limit" not in cfg:
+    cfg["mem_limit"]="400Mi"
+
+if "mem_request" not in cfg:
+    cfg["mem_request"]="200Mi"
+
 
 def find_file(f):
     """ if file is in current dir, return it, else return it from the PWD.
