@@ -55,9 +55,9 @@ spec:
             failureThreshold: 2
           resources:
             limits:
-              memory: "400Mi"
+              memory: "{cfg[mem_limit]}"
             requests:
-              memory: "200Mi"
+              memory: "{cfg[mem_request]}"
           securityContext:
             readOnlyRootFilesystem: true
             runAsNonRoot: true

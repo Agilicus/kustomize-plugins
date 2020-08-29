@@ -6,9 +6,10 @@ metadata:
   namespace: api
 name: applications
 image: cr.agilicus.com/platform/applications
+mem_request: 100Mi
 port: 5006
 replicas: 2
-versions: 
+versions:
   - ""
   - v1
   - v2/org
