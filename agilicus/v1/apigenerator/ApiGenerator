@@ -243,6 +243,9 @@ cfg["env"].append({"name": "API_ROOT", "value": "api.__ROOT_DOMAIN__"})
 deployment["spec"]["template"]["spec"]["containers"][API_CONTAINER_INDEX]["env"] = cfg[
     "env"
 ]
+main_container_args = cfg.get("args", None)
+if main_container_args:
+    deployment["spec"]["template"]["spec"]["containers"][API_CONTAINER_INDEX]["args"] = main_container_args
 
 if "mounts" in cfg:
     if "secrets" in cfg["mounts"]:
