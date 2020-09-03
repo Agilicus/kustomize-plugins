@@ -79,6 +79,12 @@ if "mem_limit" not in cfg:
 if "mem_request" not in cfg:
     cfg["mem_request"]="200Mi"
 
+if "liveness_path" not in cfg:
+    cfg["liveness_path"] = "/healthz"
+
+if "readiness_path" not in cfg:
+    cfg["readiness_path"] = "/healthz"
+
 
 def find_file(f):
     """ if file is in current dir, return it, else return it from the PWD.
@@ -216,8 +222,8 @@ for version in cfg["versions"]:
     virt_service["spec"]["http"][0]["match"].append(match)
 
 match = {
-    "match": [{"uri": {"prefix": f"{first_prefix}/healthz"}}],
-    "rewrite": {"uri": "/healthz"},
+    "match": [{"uri": {"prefix": f"{first_prefix}{cfg['liveness_path']}"}}],
+    "rewrite": {"uri": f"{cfg['liveness_path']}"},
     "route": [
         {
             "destination": {
