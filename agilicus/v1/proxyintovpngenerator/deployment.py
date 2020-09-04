@@ -80,7 +80,7 @@ spec:
             initialDelaySeconds: 5
             periodSeconds: 3
         - name: tcp-to-https
-          image: gcr.io/agilicus/utilities/corkscrew-server:v0.1.0
+          image: cr.agilicus.com/utilities/corkscrew-server/corkscrew-server:v0.1.0
           imagePullPolicy: Always
           ports:
             - name: backend
