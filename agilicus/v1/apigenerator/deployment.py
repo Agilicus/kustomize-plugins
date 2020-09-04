@@ -39,7 +39,7 @@ spec:
                 name: {cfg[name_version]}-{cfg[name]}-{cfg[hash]}
           livenessProbe:
             httpGet:
-              path: /healthz
+              path: {cfg[liveness_path]}
               port: http
             timeoutSeconds: 2
             failureThreshold: 2
@@ -47,7 +47,7 @@ spec:
             periodSeconds: 30
           readinessProbe:
             httpGet:
-              path: /healthz
+              path: {cfg[readiness_path]}
               port: http
             initialDelaySeconds: 10
             periodSeconds: 2
