@@ -5,6 +5,6 @@ kind: Secret
 metadata:
   name: {cfg[metadata][name]}
   annotations: {cfg[metadata][annotations]}
-type: Opaque
+type: {cfg[secret_type]}
 stringData: []
 """
