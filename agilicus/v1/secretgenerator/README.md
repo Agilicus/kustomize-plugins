@@ -14,6 +14,7 @@ metadata:
 type: Secret
 secret:
   - secret
+  - key_in_k8s=key_in_sops
 ```
 
 It will emit Secret with the required entry.
