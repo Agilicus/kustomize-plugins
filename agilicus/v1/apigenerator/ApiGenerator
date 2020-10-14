@@ -85,7 +85,6 @@ if "liveness_path" not in cfg:
 if "readiness_path" not in cfg:
     cfg["readiness_path"] = "/healthz"
 
-
 def find_file(f):
     """ if file is in current dir, return it, else return it from the PWD.
         Why? Kustomize changes directory, but leaves PWD alone. This allows
@@ -196,6 +195,7 @@ else:
 
 secret = yaml.load(secret.format(cfg=cfg))
 deployment = yaml.load(deployment.format(cfg=cfg))
+
 virt_service = yaml.load(virt_service.format(cfg=cfg))
 dest_rule = yaml.load(dest_rule.format(cfg=cfg))
 service = yaml.load(service.format(cfg=cfg))
@@ -245,6 +245,9 @@ match = {
 }
 virt_service["spec"]["http"].insert(0, match)
 
+small_mode = os.environ.get("DEV_SIZE_SMALL", False)
+if small_mode:
+    cfg["env"].append({'name': 'DEV_SIZE_SMALL', 'value': 'True'})
 cfg["env"].append({"name": "API_ROOT", "value": "api.__ROOT_DOMAIN__"})
 deployment["spec"]["template"]["spec"]["containers"][API_CONTAINER_INDEX]["env"] = cfg[
     "env"
