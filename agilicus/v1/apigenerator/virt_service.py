@@ -30,8 +30,8 @@ spec:
             port:
               number: {cfg[port]}
       corsPolicy:
-        allowOrigin:
-          - "*"
+        allowOrigins:
+          - regex: ".*"
         allowMethods:
           - POST
           - PUT

@@ -166,7 +166,7 @@ def add_policy_agent(cfg: dict, deployment: cfg):
         do_request_body = cfg["policy-agent"]["with_request_body"]
 
     if not do_request_body:
-        del filter_dict['spec']["configPatches"][0]["patch"]["value"]["config"]["with_request_body"]
+        del filter_dict['spec']["configPatches"][0]["patch"]["value"]["typed_config"]["with_request_body"]
 
     # Just hash the whole thing. It's simple enough.
     hash = build_hash([config_str])

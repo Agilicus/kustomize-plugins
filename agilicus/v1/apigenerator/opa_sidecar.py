@@ -139,7 +139,8 @@ spec:
         operation: INSERT_BEFORE
         value:
           name: "envoy.ext_authz"
-          config:
+          typed_config:
+            "@type": type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthz
             grpc_service:
               google_grpc:
                 target_uri: "127.0.0.1:9191"
