@@ -33,6 +33,34 @@ match_list = [
     "Pod",
 ]
 
+def add_volume(spec, cfg):
+    if not "volumes" in spec:
+        spec["volumes"] = []
+    for volume in spec["volumes"]:
+        # the cert has already been injected into this pod
+        if volume["name"] == 'cert-inject':
+            return
+    spec["volumes"].append(
+        {
+            'name': "cert-inject",
+            "configMap": {"name": cfg["inject"]["configMap"]},
+        }
+    )
+
+def add_volume_mounts(container, cfg):
+        for mount in container['volumeMounts']:
+            if mount["name"] == 'cert-inject':
+                # the cert has already been injected into this container
+                return
+        for cert in cfg["inject"]["certs"]:
+            
+            container['volumeMounts'].append(
+                {
+                    'name': "cert-inject",
+                    "mountPath": os.path.join(cfg["inject"]["dir"], cert),
+                    "subPath": cert
+                }
+            )
 
 def inject(doc, cfg):
     spec = None
@@ -48,25 +76,15 @@ def inject(doc, cfg):
         or doc["kind"] == "Job"
     ):
         spec = doc["spec"]["template"]["spec"]
-    if not "volumes" in spec:
-        spec["volumes"] = []
-    spec["volumes"].append(
-        {
-            'name': "cert-inject",
-            "configMap": {"name": cfg["inject"]["configMap"]},
-        }
-    )
+    
+    add_volume(spec, cfg)
+
     for c in spec["containers"]:
         if not "volumeMounts" in c:
             c["volumeMounts"] = []
-        for cert in cfg["inject"]["certs"]:
-            c['volumeMounts'].append(
-                {
-                    'name': "cert-inject",
-                    "mountPath": os.path.join(cfg["inject"]["dir"], cert),
-                    "subPath": cert
-                }
-            )
+
+        add_volume_mounts(c, cfg)
+
         if "env" not in cfg["inject"]:
             continue
         if not "env" in c:
