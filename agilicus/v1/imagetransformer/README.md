@@ -3,6 +3,10 @@
 Take a bill-of-materials of *all* images we wish to transform,
 and transform their version (and optionally name).
 
+You may also add a prefix. This means we could e.g. transform
+`cockroachdb/cockroach` to `cr.agilicus.com/cache/d/cockroachdb/cockroach`
+
+
 For example given this config:
 ```
 ---

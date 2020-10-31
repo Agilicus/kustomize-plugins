@@ -10,7 +10,7 @@ with open(sys.argv[1], "r") as stream:
     try:
         data = yaml.safe_load(stream)
     except yaml.YAMLError as exc:
-        print("Error parsing PrivateRegistry input", file=sys.stderr)
+        print(f"Error parsing PrivateRegistry input {exc}", file=sys.stderr)
         sys.exit(1)
 
 # We make this an associative array. Can't do it in the
@@ -20,11 +20,14 @@ rename_images = {}
 for image in data["images"]:
     new_name = None
     tag = None
+    prefix = None
     if "new_name" in image:
         new_name = image["new_name"]
     if "tag" in image:
         tag = image["tag"]
-    img_obj = {"tag": tag, "new_name": new_name}
+    if "prefix" in image:
+        prefix = image["prefix"]
+    img_obj = {"tag": tag, "new_name": new_name, "prefix": prefix}
     if "labels" in image:
         img_obj["labels"] = image["labels"]
     if image["name"] not in images:
@@ -64,6 +67,8 @@ def update_container(obj, container, images):
                 new_name = image
                 if target["new_name"]:
                     new_name = target["new_name"]
+                if target["prefix"]:
+                    new_name = target["prefix"] + "/" + new_name
                 if target["tag"]:
                     container["image"] = new_name + ":" + str(target["tag"])
                 else:

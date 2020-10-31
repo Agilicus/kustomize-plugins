@@ -16,10 +16,10 @@ spec:
         app: nginx
     spec:
       containers:
-      - name: nginx
-        image: nginx:1.7.9
-        ports:
-        - containerPort: 80
+        - name: nginx
+          image: nginx:1.7.9
+          ports:
+            - containerPort: 80
 ---
 apiVersion: batch/v1
 kind: Job
@@ -29,8 +29,8 @@ spec:
   template:
     spec:
       containers:
-      - name: foo
-        image: bar
+        - name: foo
+          image: bar
       restartPolicy: Never
 
 ---
@@ -42,7 +42,19 @@ metadata:
     app: myapp
 spec:
   containers:
-  - name: myapp-container
-    image: busybox
-    command: ['sh', '-c', 'echo Hello Kubernetes! && sleep 3600']
+    - name: myapp-container
+      image: busybox
+      command: ['sh', '-c', 'echo Hello Kubernetes! && sleep 3600']
 
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: myapp-pod-c
+  labels:
+    app: myapp-c
+spec:
+  containers:
+    - name: cockroach
+      image: cockroachdb/cockroach
+      command: ['sh', '-c', 'echo Hello Kubernetes! && sleep 3600']
