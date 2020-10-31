@@ -15,3 +15,5 @@ images:
     tag: v1
   - name: busybox
     new_name: alpine
+  - name: cockroachdb/cockroach
+    prefix: cr.agilicus.com/cache/d
