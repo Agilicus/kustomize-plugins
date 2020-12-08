@@ -1,15 +1,22 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: v1-catalogues
-  namespace: api
+  annotations:
+    deployment.kubernetes.io/revision: "1"
+  creationTimestamp: "2020-12-08T21:35:25Z"
+  generation: 1
+  labels:
+    app: vpn-gateway
+    cluster: dt
+  name: vpn-gateway
+  namespace: vpn-gateway
 spec:
   progressDeadlineSeconds: 600
   replicas: 1
   revisionHistoryLimit: 10
   selector:
     matchLabels:
-      app: v1-catalogues
+      app: vpn-gateway
       cluster: dt
   strategy:
     rollingUpdate:
@@ -18,11 +25,131 @@ spec:
     type: RollingUpdate
   template:
     metadata:
-      annotations:
-        fluentbit.io/parser: json
       creationTimestamp: null
       labels:
-        app: v1-catalogues
+        app: vpn-gateway
         cluster: dt
+        service: vpn-gateway
     spec:
-
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - vpn-gateway
+              topologyKey: kubernetes.io/hostname
+            weight: 1
+      containers:
+      - args:
+        - -l
+        - $(LOG_LEVEL)
+        - -c
+        - /etc/envoy/envoy.yaml
+        command:
+        - envoy
+        env:
+        - name: LOG_LEVEL
+          value: info
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.name
+        - name: POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace
+        envFrom:
+        - configMapRef:
+            name: environment-f52d5f94kt
+        image: cr.agilicus.com/cache/d/envoyproxy/envoy-alpine:v1.11.0
+        imagePullPolicy: Always
+        livenessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /vpn-gateway/v0/check_alive
+            port: 8877
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 3
+          successThreshold: 1
+          timeoutSeconds: 1
+        name: vpn-gateway
+        ports:
+        - containerPort: 8080
+          name: http
+          protocol: TCP
+        - containerPort: 8443
+          name: https
+          protocol: TCP
+        readinessProbe:
+          failureThreshold: 3
+          httpGet:
+            path: /vpn-gateway/v0/check_ready
+            port: 8877
+            scheme: HTTP
+          initialDelaySeconds: 5
+          periodSeconds: 3
+          successThreshold: 1
+          timeoutSeconds: 1
+        resources:
+          limits:
+            cpu: "2"
+            memory: 800Mi
+          requests:
+            cpu: 200m
+            memory: 100Mi
+        securityContext:
+          capabilities:
+            drop:
+            - all
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 10001
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /etc/envoy
+          name: processed
+        - mountPath: /config
+          name: config
+          readOnly: true
+      dnsPolicy: ClusterFirst
+      imagePullSecrets:
+      - name: regcred
+      - name: regcred
+      initContainers:
+      - args:
+        - /config/envoy.yaml:/etc/envoy/envoy.yaml
+        envFrom:
+        - configMapRef:
+            name: environment-f52d5f94kt
+        image: cr.agilicus.com/tooling/envsubst:0.1.0
+        imagePullPolicy: IfNotPresent
+        name: envsubst
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+        volumeMounts:
+        - mountPath: /config
+          name: config
+          readOnly: true
+        - mountPath: /etc/envoy
+          name: processed
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext:
+        fsGroup: 2000
+      terminationGracePeriodSeconds: 30
+      volumes:
+      - emptyDir: {}
+        name: processed
+      - configMap:
+          defaultMode: 420
+          name: config-5db4mt5d67
+        name: config
