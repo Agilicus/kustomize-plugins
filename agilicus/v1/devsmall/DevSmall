@@ -1,0 +1,35 @@
+#!/usr/bin/env /usr/bin/python3
+
+import pkg_resources
+pkg_resources.require('PyYAML>=5.1.1')
+
+import sys
+import yaml
+import shutil
+import subprocess
+import os
+import re
+
+with open(sys.argv[1], "r") as stream:
+    try:
+        data = yaml.safe_load(stream)
+    except yaml.YAMLError as exc:
+        print("Error parsing DevSmall input", file=sys.stderr)
+        sys.exit(1)
+
+try:
+    for yaml_input in yaml.safe_load_all(sys.stdin):
+        if 'kind' in yaml_input and yaml_input['kind'] == 'Deployment':
+            yaml_input['spec']['strategy'] = { "type": "Replace" }
+            if yaml_input['metadata']['namespace'] == 'portal':
+                if yaml_input['metadata']['name'] in ['master-portal', 'alpha-portal']:
+                    yaml_input['spec']['replicas'] = 0
+            if yaml_input['metadata']['namespace'] == 'profile':
+                if yaml_input['metadata']['name'] in ['alpha-profile']:
+                    yaml_input['spec']['replicas'] = 0
+
+        print("---")
+        print(yaml.dump(yaml_input, default_flow_style=False))
+except yaml.YAMLError as exc:
+    print("Error parsing YAML input\n\n%s\n\n" % input, file=sys.stderr)
+
