@@ -20,7 +20,7 @@ with open(sys.argv[1], "r") as stream:
 try:
     for yaml_input in yaml.safe_load_all(sys.stdin):
         if 'kind' in yaml_input and yaml_input['kind'] == 'Deployment':
-            yaml_input['spec']['strategy'] = { "type": "Replace" }
+            yaml_input['spec']['strategy'] = { "type": "Recreate" }
             if yaml_input['metadata']['namespace'] == 'portal':
                 if yaml_input['metadata']['name'] in ['master-portal', 'alpha-portal']:
                     yaml_input['spec']['replicas'] = 0
