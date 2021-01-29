@@ -138,7 +138,7 @@ spec:
       patch:
         operation: INSERT_BEFORE
         value:
-          name: "envoy.ext_authz"
+          name: "envoy.filters.network.ext_authz"
           typed_config:
             "@type": type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthz
             grpc_service:
