@@ -16,6 +16,7 @@ spec:
         app: {cfg[name_version]}-{cfg[name]}
       annotations:
         fluentbit.io/parser: "json"
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
       affinity:
         podAntiAffinity:
