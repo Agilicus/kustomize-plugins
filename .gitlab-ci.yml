@@ -1,0 +1,9 @@
+---
+stages:
+  - lint
+
+
+include:
+  - project: tooling/pipelines
+    ref: master
+    file: lint-conform.yml
