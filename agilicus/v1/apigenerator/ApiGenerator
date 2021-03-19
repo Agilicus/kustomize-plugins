@@ -248,6 +248,8 @@ virt_service["spec"]["http"].insert(0, match)
 small_mode = os.environ.get("DEV_SIZE_SMALL", False)
 if small_mode:
     cfg["env"].append({'name': 'DEV_SIZE_SMALL', 'value': 'True'})
+    dest_rule['spec']['trafficPolicy']['outlierDetection'] = {}
+
 cfg["env"].append({"name": "API_ROOT", "value": "api.__ROOT_DOMAIN__"})
 deployment["spec"]["template"]["spec"]["containers"][API_CONTAINER_INDEX]["env"] = cfg[
     "env"
