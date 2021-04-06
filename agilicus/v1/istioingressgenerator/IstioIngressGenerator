@@ -101,6 +101,10 @@ spec:
 
     gw = make_gateway(data, secret_name, allow_plaintext)
     vs_yaml = yaml.safe_load(vs)
+
+    if data['virtual_service_hosts']:
+        vs_yaml['spec']['hosts'] = data['virtual_service_hosts']
+
     if allow_plaintext:
         # Istio intercepts all plaintext http on this gateway.
         vs_yaml["spec"]["gateways"].append(
