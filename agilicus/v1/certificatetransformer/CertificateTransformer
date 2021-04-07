@@ -6,6 +6,14 @@ pkg_resources.require('PyYAML>=5.1.1')
 import sys
 import yaml
 
+
+supported_certmanager_apis = [
+    "cert-manager.io/v1",
+    "cert-manager.io/v1alpha2",
+    "certmanager.k8s.io/v1alpha1",
+    "cert-manager.io/v1beta1",
+]
+
 with open(sys.argv[1], 'r') as stream:
     try:
         data = yaml.safe_load(stream)
@@ -17,8 +25,7 @@ if 'except' not in data:
 try:
     for yaml_input in yaml.safe_load_all(sys.stdin):
         if yaml_input['kind'] == 'Certificate':
-            if (yaml_input['apiVersion'] == 'cert-manager.io/v1alpha2' or
-              yaml_input['apiVersion'] == 'certmanager.k8s.io/v1alpha1'):
+            if yaml_input['apiVersion'] in supported_certmanager_apis:
                 if "namespace" in yaml_input['metadata']:
                     name = yaml_input['metadata']['namespace'] + '/' + yaml_input['metadata']['name']
                 else:
