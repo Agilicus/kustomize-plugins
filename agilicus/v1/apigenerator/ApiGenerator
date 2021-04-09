@@ -221,6 +221,10 @@ for version in cfg["versions"]:
             match = {"uri": {"prefix": f"/{version}"}}
     virt_service["spec"]["http"][0]["match"].append(match)
 
+for match_obj in cfg.get("uri_matches", []):
+    match = {"uri": match_obj}
+    virt_service["spec"]["http"][0]["match"].append(match)
+
 match = {
     "match": [{"uri": {"prefix": f"{first_prefix}{cfg['liveness_path']}"}}],
     "rewrite": {"uri": f"{cfg['liveness_path']}"},
