@@ -140,7 +140,8 @@ spec:
         value:
           name: "envoy.filters.network.ext_authz"
           typed_config:
-            "@type": type.googleapis.com/envoy.config.filter.http.ext_authz.v2.ExtAuthz
+            "@type": type.googleapis.com/envoy.extensions.filters.http.ext_authz.v3.ExtAuthz
+            transport_api_version: V3
             grpc_service:
               google_grpc:
                 target_uri: "127.0.0.1:9191"
