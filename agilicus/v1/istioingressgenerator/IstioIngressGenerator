@@ -162,7 +162,7 @@ spec:
   host: {host}
   trafficPolicy:
     outlierDetection:
-      consecutiveErrors: 3
+      consecutiveGatewayErrors: 3
       interval: 5s
       baseEjectionTime: 2s
       maxEjectionPercent: 50
