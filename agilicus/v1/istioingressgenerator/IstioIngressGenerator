@@ -85,7 +85,7 @@ spec:
 
     vs = f"""
 ---
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1beta1
 kind: VirtualService
 metadata:
   name: {data['name']}-{data['metadata']['namespace']}-vs
@@ -153,7 +153,7 @@ spec:
 
     host = data['match_routes']['http'][0]['route'][0]['destination']['host']
     dr = f"""
-apiVersion: networking.istio.io/v1alpha3
+apiVersion: networking.istio.io/v1beta1
 kind: DestinationRule
 metadata:
   name: {data['name']}-{data['metadata']['namespace']}-dr
