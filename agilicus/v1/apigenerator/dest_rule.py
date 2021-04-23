@@ -9,7 +9,7 @@ spec:
   host: {cfg[name_version]}-{cfg[name]}.{cfg[metadata][namespace]}.svc.cluster.local
   trafficPolicy:
     outlierDetection:
-      consecutiveErrors: 3
+      consecutiveGatewayErrors: 3
       interval: 5s
       baseEjectionTime: 2s
       maxEjectionPercent: 50
