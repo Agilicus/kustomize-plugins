@@ -7,6 +7,11 @@ metadata:
   namespace: {cfg[metadata][namespace]}
 spec:
   replicas: {cfg[replicas]}
+  strategy
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
   selector:
     matchLabels:
       app: {cfg[name_version]}-{cfg[name]}
