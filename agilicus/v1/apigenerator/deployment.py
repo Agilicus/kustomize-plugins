@@ -18,13 +18,13 @@ spec:
         fluentbit.io/parser: "json"
         cluster-autoscaler.kubernetes.io/safe-to-evict: "true"
     spec:
-      affinity:
-        podAntiAffinity:
-          requiredDuringSchedulingIgnoredDuringExecution:
-            - labelSelector:
-                matchLabels:
-                  app: {cfg[name_version]}-{cfg[name]}
-              topologyKey: kubernetes.io/hostname
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: {cfg[name_version]}-{cfg[name]}
       imagePullSecrets:
         - name: regcred
       containers:
