@@ -1,6 +1,6 @@
 poddisruptionbudget = """
 ---
-apiVersion: policy/v1
+apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
 metadata:
   name: {cfg[name_version]}-{cfg[name]}
