@@ -16,6 +16,7 @@ import zlib
 import ruamel.yaml
 
 from deployment import deployment
+from poddisruptionbudget import poddisruptionbudget
 from virt_service import virt_service
 from dest_rule import dest_rule
 from service import service
@@ -196,6 +197,8 @@ else:
 secret = yaml.load(secret.format(cfg=cfg))
 deployment = yaml.load(deployment.format(cfg=cfg))
 
+poddisruptionbudget = yaml.load(poddisruptionbudget.format(cfg=cfg))
+
 virt_service = yaml.load(virt_service.format(cfg=cfg))
 dest_rule = yaml.load(dest_rule.format(cfg=cfg))
 service = yaml.load(service.format(cfg=cfg))
@@ -276,6 +279,7 @@ print_obj(deployment)
 print_obj(virt_service)
 print_obj(dest_rule)
 print_obj(service)
+print_obj(poddisruptionbudget)
 
 
 if "db" in cfg:
