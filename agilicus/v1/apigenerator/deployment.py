@@ -7,7 +7,7 @@ metadata:
   namespace: {cfg[metadata][namespace]}
 spec:
   replicas: {cfg[replicas]}
-  strategy
+  strategy:
     type: RollingUpdate
     rollingUpdate:
       maxSurge: 1
