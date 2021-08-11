@@ -3,3 +3,6 @@ apiVersion: agilicus/v1
 kind: DevSmall
 metadata:
   name: not-used-ns
+data:
+  filter_features:
+    rabbitmq: true

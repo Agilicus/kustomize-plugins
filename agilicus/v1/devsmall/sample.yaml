@@ -54,6 +54,8 @@ spec:
         env:
         - name: LOG_LEVEL
           value: info
+        - name: AMQP_HOST
+          value: mq.mq
         - name: POD_NAME
           valueFrom:
             fieldRef:
