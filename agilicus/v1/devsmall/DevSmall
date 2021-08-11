@@ -17,6 +17,9 @@ with open(sys.argv[1], "r") as stream:
         print("Error parsing DevSmall input", file=sys.stderr)
         sys.exit(1)
 
+d = data.get('data', {})
+filters = d.get("feature_filters", {})
+
 try:
     for yaml_input in yaml.safe_load_all(sys.stdin):
         if 'kind' in yaml_input and yaml_input['kind'] == 'Deployment':
@@ -27,6 +30,13 @@ try:
             if yaml_input['metadata']['namespace'] == 'profile':
                 if yaml_input['metadata']['name'] in ['alpha-profile']:
                     yaml_input['spec']['replicas'] = 0
+
+            if filters.get("rabbitmq", True):
+                for container in yaml_input['spec']['template']['spec']['containers']:
+                    for num, env in enumerate(container['env']):
+                        if env['name'] == 'AMQP_HOST':
+                            container['env'].pop(num)
+                            break
 
         print("---")
         print(yaml.dump(yaml_input, default_flow_style=False))
