@@ -33,7 +33,7 @@ try:
 
             if filters.get("rabbitmq", True):
                 for container in yaml_input['spec']['template']['spec']['containers']:
-                    for num, env in enumerate(container['env']):
+                    for num, env in enumerate(container.get('env', [])):
                         if env['name'] == 'AMQP_HOST':
                             container['env'].pop(num)
                             break
