@@ -4,5 +4,5 @@ kind: DevSmall
 metadata:
   name: not-used-ns
 data:
-  filter_features:
-    rabbitmq: true
+  feature_filters:
+    rabbitmq: True
