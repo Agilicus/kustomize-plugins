@@ -74,6 +74,9 @@ if len(cfg["versions"][0]) == 0:
 if "name_version" not in cfg:
     cfg["name_version"] = cfg["versions"][0].split("/")[0]
 
+if "replicas" not in cfg:
+    cfg["replicas"]="2"
+
 if "mem_limit" not in cfg:
     cfg["mem_limit"]="400Mi"
 
@@ -279,7 +282,8 @@ print_obj(deployment)
 print_obj(virt_service)
 print_obj(dest_rule)
 print_obj(service)
-print_obj(poddisruptionbudget)
+if int(cfg["replicas"]) > 1:
+    print_obj(poddisruptionbudget)
 
 
 if "db" in cfg:
