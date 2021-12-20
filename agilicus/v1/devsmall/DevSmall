@@ -23,7 +23,9 @@ filters = d.get("feature_filters", {})
 try:
     for yaml_input in yaml.safe_load_all(sys.stdin):
         if 'kind' in yaml_input and yaml_input['kind'] == 'Deployment':
-            yaml_input['spec']['strategy'] = { "type": "Recreate" }
+            if 'metadata' in yaml_input and yaml_input.get('metadata',{}).get('labels', {}).get('app') != 'agent-server':
+                # allow the agent-server to utilize a rolling update strategy for local upgrade testing
+                yaml_input['spec']['strategy'] = { "type": "Recreate" }
             if yaml_input['metadata']['namespace'] == 'portal':
                 if yaml_input['metadata']['name'] in ['master-portal', 'alpha-portal']:
                     yaml_input['spec']['replicas'] = 0
