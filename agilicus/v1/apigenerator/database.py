@@ -6,7 +6,7 @@ metadata:
   name: {cfg[db][name]}
   namespace: {cfg[metadata][namespace]}
 spec:
-  dbname: {cfg[db][name]}
+  dbname: {cfg[db][db_name]}
   user: {cfg[db][user]}
   password: {cfg[db][password]}
   restore: true
