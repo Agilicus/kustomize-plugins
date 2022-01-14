@@ -287,6 +287,8 @@ if int(cfg["replicas"]) > 1:
 
 
 if "db" in cfg:
+    db_cfg = cfg["db"]
+    db_cfg.setdefault("db_name", db_cfg["name"])
     database = yaml.load(database.format(cfg=cfg))
     print_obj(database)
 
