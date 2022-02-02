@@ -161,6 +161,12 @@ def add_policy_agent(cfg: dict, deployment: cfg):
             cfg["policy-agent"]["audience"] = default_audience
 
     container = yaml.load(opa_sidecar.container.format(cfg=cfg))
+    for opa_env in cfg.get('opa_env', []):
+        container["env"].append({
+            'name': opa_env['name'],
+            'value': opa_env['value'],
+        })
+
     init_container = yaml.load(opa_sidecar.init_container.format(cfg=cfg))
     volumes = yaml.load(opa_sidecar.volumes.format(cfg=cfg))
     config_str = opa_sidecar.config.format(cfg=cfg)
