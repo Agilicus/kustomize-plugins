@@ -5,3 +5,4 @@ metadata:
   name: not-used-crd
 resources: 
   - git@git.agilicus.com:kcharts/elastic.git
+  - git@git.agilicus.com:kcharts/tidb-operator.git/crd.yaml
