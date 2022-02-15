@@ -32,11 +32,13 @@ def test_and_output(fname):
                 print("---")
                 print(yaml.dump(doc, default_flow_style=False))
 
-def gen_dir(dirn):
-    for fname in glob.glob(os.path.join(dirn, "*.yaml")):
+def gen_dir(dirn, file_glob):
+    if len(file_glob) == 0:
+        file_glob = "*.yaml"
+    for fname in glob.glob(os.path.join(dirn, file_glob)):
         test_and_output(fname)
 
-def gen(repo):
+def gen(repo, single_file):
     try:
         mode = os.stat(repo).st_mode
         if S_ISDIR(mode):
@@ -54,10 +56,13 @@ def gen(repo):
             [git, "clone", repo, odir.name], stderr=subprocess.STDOUT
         )
 
-        gen_dir(odir.name)
+        gen_dir(odir.name, single_file)
 
         odir.cleanup()
 
 
-for repo in cfg["resources"]:
-    gen(repo)
+for resource in cfg["resources"]:
+    repo = resource.split(".git")[0] + ".git"
+    file_glob = resource.split(".git")[1].lstrip('/')
+
+    gen(repo, file_glob)
