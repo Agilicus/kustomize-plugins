@@ -62,7 +62,13 @@ def gen(repo, single_file):
 
 
 for resource in cfg["resources"]:
-    repo = resource.split(".git")[0] + ".git"
-    file_glob = resource.split(".git")[1].lstrip('/')
+    file_glob = ''
+    if ".git" in resource:
+        parts = resource.split(".git")
+        repo = parts[0] + ".git"
+        if len(parts) > 1:
+            file_glob = parts[1].lstrip('/')
+    else:
+        repo = resource
 
     gen(repo, file_glob)
