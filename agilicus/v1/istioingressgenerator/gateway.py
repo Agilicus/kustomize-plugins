@@ -24,7 +24,6 @@ base_server = """
       credentialName: "{secret_name}"
       cipherSuites:
         - ECDHE-ECDSA-AES256-GCM-SHA384
-        - AES256-GCM-SHA384
         - ECDHE-RSA-AES256-GCM-SHA384
         - ECDHE-RSA-CHACHA20-POLY1305
         - ECDHE-ECDSA-CHACHA20-POLY1305
