@@ -107,6 +107,9 @@ data:
           log_level: trace
           fetch_static_tokens: false
           token_service_url: https://api.agilicus.com
+          path_regex_rewrite:
+            regex: '([&?])(api_key|username)=[^\&]+'
+            substitution: '$1$2=xxxxx'
   static_config.rego: |
     package static
     aud="{cfg[policy-agent][audience]}"
