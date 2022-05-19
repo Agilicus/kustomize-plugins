@@ -41,7 +41,7 @@ try:
                             container['env'].pop(num)
                             break
         if 'kind' in yaml_input and yaml_input['kind'] == 'StatefulSet' or yaml_input['kind'] == 'Deployment':
-            pod_spec=yaml_input.get('spec', {}).get('spec', {})
+            pod_spec=yaml_input.get('spec', {}).get('template', {}).get('spec', {})
             pod_spec.pop('affinity', None)
 
         print("---")
