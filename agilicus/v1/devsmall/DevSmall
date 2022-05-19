@@ -26,6 +26,7 @@ try:
             if 'metadata' in yaml_input and yaml_input.get('metadata',{}).get('labels', {}).get('app') != 'agent-server':
                 # allow the agent-server to utilize a rolling update strategy for local upgrade testing
                 yaml_input['spec']['strategy'] = { "type": "Recreate" }
+                
             if yaml_input['metadata']['namespace'] == 'portal':
                 if yaml_input['metadata']['name'] in ['master-portal', 'alpha-portal']:
                     yaml_input['spec']['replicas'] = 0
@@ -39,6 +40,9 @@ try:
                         if env['name'] == 'AMQP_HOST':
                             container['env'].pop(num)
                             break
+        if 'kind' in yaml_input and yaml_input['kind'] == 'StatefulSet' or yaml_input['kind'] == 'Deployment':
+            pod_spec=yaml_input.get('spec', {}).get('spec', {})
+            pod_spec.pop('affinity', None)
 
         print("---")
         print(yaml.dump(yaml_input, default_flow_style=False))
