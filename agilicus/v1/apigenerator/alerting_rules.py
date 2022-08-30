@@ -63,5 +63,12 @@ spec:
             severity: critical
           annotations:
             summary: "API service {cfg[name_version]}-{cfg[name]} on cluster : __CLUSTER__ because for about five minutes, the db_fail_total counter has an increasing rate and the database is returning the responce code of 500 "
+        - alert: {cfg[name_version]}-{cfg[name]} api cache amq connection failures
+          expr: 'sum(rate(amq_manager_connection_failures_total{{service = "{cfg[name_version]}-{cfg[name]}"}}[1m])) > 0'
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: "API service {cfg[name_version]}-{cfg[name]} on cluster : __CLUSTER__ the amq_manager_connection_failures_total is incrementing, which will lead to the api cache missing invalidates from amq"
         
 """
