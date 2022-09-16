@@ -9,6 +9,8 @@ args:
   - "json"
   - "--history"
   - "/dev/null"
+  - --shutdown-wait-period
+  - "10"
   - "--config-file=/config/config.yaml"
   - "/policy/rbac_jwt_policy.rego"
   - "/policy/json.rego"
