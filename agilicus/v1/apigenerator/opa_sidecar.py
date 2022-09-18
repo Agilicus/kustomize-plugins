@@ -106,7 +106,7 @@ data:
       envoy.ext_authz.grpc:
           addr: :9191
           query: data.istio.authz.allow
-          log_level: trace
+          log_level: info
           fetch_static_tokens: false
           token_service_url: https://api.agilicus.com
           path_regex_rewrite:
