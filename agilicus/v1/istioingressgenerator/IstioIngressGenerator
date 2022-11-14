@@ -150,6 +150,11 @@ spec:
         data["destination"]["loadBalancer"]["consistentHash"]["httpCookie"][
             "path"
         ] = "/"
+    elif data.get("source_ip_hash"):
+        dest = data.setdefault("destination", {})
+        lb = dest.setdefault("loadBalancer", {})
+        ch = lb.setdefault("consistentHash", {})
+        ch["useSourceIp"] = True
 
     host = data['match_routes']['http'][0]['route'][0]['destination']['host']
     dr = f"""
@@ -174,6 +179,7 @@ spec:
     disable_destination = False
     if "destination" in data:
         disable_destination = data['destination'].get("disable", disable_destination)
+        disable_outlier_detection = data['destination'].get("outlier_detection", {}).get("disabled")
         port = data["match_routes"]["http"][0]["route"][0]["destination"][
             "port"
         ]["number"]
@@ -190,6 +196,9 @@ spec:
             dr_obj["spec"]["trafficPolicy"]["loadBalancer"] = data["destination"][
                 "loadBalancer"
             ]
+        if disable_outlier_detection:
+            dr_obj["spec"].get("trafficPolicy", {}).pop("outlierDetection", None)
+
     if not disable_destination:
         print("---")
          # See https://github.com/yaml/pyyaml/pull/129 for why the copy
