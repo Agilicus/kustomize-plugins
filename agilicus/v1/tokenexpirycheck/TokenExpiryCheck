@@ -1,0 +1,83 @@
+#!/usr/bin/env /usr/bin/python3
+
+from datetime import datetime
+from datetime import timedelta
+import sys
+import jwt
+import ruamel.yaml
+import json
+import shutil
+import os
+import subprocess
+
+yaml = ruamel.yaml.YAML()
+
+with open(sys.argv[1], 'r') as stream:
+    try:
+        cfg = yaml.load(stream)
+    except yaml.YAMLError as exc:
+        print("Error parsing TokenExpiryCheck input (%s)", file=sys.stderr)
+        sys.exit(1)
+
+if 'type' not in cfg:
+    cfg['type'] = "Secret"
+
+def find_file(f):
+    """ if file is in current dir, return it, else return it from the PWD.
+        Why? Kustomize changes directory, but leaves PWD alone. This allows
+        us to have secrets.enc.yaml in the kustomization dir, or deploy
+        dir
+    """
+    try:
+        os.stat(f)
+        return f
+    except FileNotFoundError:
+        return os.path.join(os.environ['PWD'], f)
+
+def sops_fetch(cfg):
+    sops = shutil.which(
+        "sops", path="/bin:/usr/bin:/snap/bin:%s/go/bin" % os.path.expanduser("~")
+    )
+    if not sops:
+        print("Error in SecretTransformer: sops not on path", file=sys.stderr)
+        sys.exit(1)
+
+    if "secret_source" not in cfg:
+        cfg["secret_source"] = "secrets.enc.yaml"
+
+    sfile = find_file(cfg["secret_source"])
+    try:
+        with subprocess.Popen(
+            [sops, "-d", sfile], stdout=subprocess.PIPE
+        ) as f:
+            if sfile.endswith(".json"):
+                secrets = json.load(f.stdout)
+            else:
+                secrets = yaml.load(f.stdout)
+    except subprocess.CalledProcessError as exc:
+        print(
+            "Is your secret-file %s in %s dir?" % (cfg["secret_source"], os.getcwd()),
+            file=sys.stderr,
+        )
+        print(f"Error calling sops: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+    if not secrets:
+        print("Error: secrets is empty", file=sys.stderr)
+        sys.exit(1)
+    return secrets
+
+secrets = sops_fetch(cfg)
+
+for k, v in secrets.items():
+    if "TOKEN" in k:
+        try:
+            decoded_token = jwt.decode(v, options={"verify_signature": False})
+            expiry = datetime.fromtimestamp(decoded_token.get("exp"))
+            max_delta = datetime.now() + timedelta(days=30)
+            if expiry < max_delta:
+                if not os.environ.get("ALLOW_TOKEN_EXPIRY", "false").lower() == "true":
+                    print(f"TOKEN {k} will expiry {expiry}. Update the token or temporarily set env ALLOW_TOKEN_EXPIRY=true")
+                    sys.exit(1)
+        except Exception as exc:
+            continue
