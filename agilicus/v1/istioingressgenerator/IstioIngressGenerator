@@ -184,6 +184,8 @@ spec:
         if "tls" in data["destination"]:
             if 'trafficPolicy' not in dr_obj['spec']:
                 dr_obj["spec"]["trafficPolicy"] = {}
+            if 'portLevelSettings' not in dr_obj["spec"]["trafficPolicy"]:
+                dr_obj["spec"]["trafficPolicy"]["portLevelSettings"] = [ { "port": {} } ]
             dr_obj["spec"]["trafficPolicy"]["portLevelSettings"][0]["tls"] = data[
                 "destination"
             ]["tls"]
