@@ -3,6 +3,8 @@
 import pkg_resources
 pkg_resources.require('PyYAML>=5.1.1')
 
+from io import StringIO
+import re
 import sys
 import yaml
 import shutil
@@ -37,8 +39,22 @@ def add_cred(obj, secret):
     print("---")
     print(yaml.dump(obj, default_flow_style=False))
 
+
+def scrub(raw):
+    """ This patches up some yaml issues that arise from a difference of
+        opinion on quoting of oerators. E.g. prometheus bundle has:
+        enum: [ '!=', '=', ...]
+        and kustomize removes the '' around the =.
+    """
+    raw = re.sub(r'- =~$', "- '=~'", raw, flags=re.M |re.DOTALL)
+    raw = re.sub(r'- =$', "- '='", raw, flags=re.M |re.DOTALL)
+    return raw
+
+
 try:
-    for yaml_input in yaml.safe_load_all(sys.stdin):
+    raw_data = scrub(sys.stdin.read())
+    f = StringIO(raw_data)
+    for yaml_input in yaml.safe_load_all(f):
         if yaml_input and yaml_input["kind"] in match_list:
             add_cred(yaml_input, data["secret"])
         else:
