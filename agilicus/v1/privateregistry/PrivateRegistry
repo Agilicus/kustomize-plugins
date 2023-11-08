@@ -25,6 +25,7 @@ match_list = [
     "StatefulSet",
     "ReplicaSet",
     "CronJob",
+    "Job",
 ]
 
 def add_cred(obj, secret):
@@ -34,6 +35,7 @@ def add_cred(obj, secret):
         obj["kind"] == "Deployment"
         or obj["kind"] == "StatefulSet"
         or obj["kind"] == "ReplicaSet"
+        or obj["kind"] == "Job"
     ):
         jp = obj["spec"]["template"]["spec"]
         if 'imagePullSecrets' not in jp:
