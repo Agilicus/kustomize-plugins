@@ -4,17 +4,15 @@ from datetime import datetime
 from datetime import timedelta
 import sys
 import jwt
-import ruamel.yaml
+import yaml
 import json
 import shutil
 import os
 import subprocess
 
-yaml = ruamel.yaml.YAML()
-
 with open(sys.argv[1], 'r') as stream:
     try:
-        cfg = yaml.load(stream)
+        cfg = yaml.safe_load(stream)
     except yaml.YAMLError as exc:
         print("Error parsing TokenExpiryCheck input (%s)", file=sys.stderr)
         sys.exit(1)
@@ -53,7 +51,7 @@ def sops_fetch(cfg):
             if sfile.endswith(".json"):
                 secrets = json.load(f.stdout)
             else:
-                secrets = yaml.load(f.stdout)
+                secrets = yaml.safe_load(f.stdout)
     except subprocess.CalledProcessError as exc:
         print(
             "Is your secret-file %s in %s dir?" % (cfg["secret_source"], os.getcwd()),
